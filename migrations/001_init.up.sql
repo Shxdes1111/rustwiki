@@ -79,3 +79,24 @@ INSERT INTO clothing_item (name, equipmentslot, protection, craftable, stacksize
     ('Balaclava', 'head', 5, true, 1, 2),
     ('Bone Helmet', 'head', 15, true, 1, 2),
     ('Coffee Can Helmet', 'head', 20, true, 1, 2);
+
+INSERT INTO ammo (name, weapon_item_id) VALUES
+    ('5.56mm Rifle Ammo', 1),
+    ('9mm Pistol Ammo', 3),
+    ('12 Gauge Shells', 5),
+    ('Arrow', 10),
+    ('Handmade Shell', 6);
+
+INSERT INTO mods (name, weapon_item_id) VALUES
+    ('Silencer', 1),
+    ('Red Dot Sight', 3),
+    ('Holographic Sight', 5),
+    ('8x Scope', 10),
+    ('Muzzle Boost', 7);
+
+INSERT INTO ingredients (name, weapon_item_id, clothing_item_id) VALUES
+    ('Metal Fragments', 1, NULL),
+    ('Wood', 10, NULL),
+    ('Cloth', NULL, 2),
+    ('High Quality Metal', NULL, 9),
+    ('Animal Fat', NULL, 8);
