@@ -1,0 +1,11 @@
+# Project Binary
+rustwiki
+
+# Custom folders
+data/
+vendor/
+rustwiki/
+
+# Logs and Temp files
+*.log
+*~
