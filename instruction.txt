@@ -1,0 +1,6 @@
+weapon_item: id, name, type (range|melee), ammo(slice), mods(slice), firemode, craftable(bool), ingredients(slice), stacksize
+clothing_item: id, name, equipmentslot, protection, craftable(bool), ingredients(slice), stacksize
+ammo: id, name, weapon_item_id
+mods: id, name, weapon_item_id
+ingredients: id, name, weapon_item_id, clothing_item_id
+category: id, name
