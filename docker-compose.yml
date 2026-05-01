@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   postgres:
     image: postgres:15-alpine
@@ -9,16 +8,36 @@ services:
       POSTGRES_DB: rustwiki
       POSTGRES_USER: rustwiki_user
       POSTGRES_PASSWORD: rustwiki_pass
-    ports:  
+    ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d
+      - ./backend/migrations:/docker-entrypoint-initdb.d  
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U rustwiki_user -d rustwiki"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  backend:
+    build: ./backend
+    container_name: rustwiki_backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DB_URL=postgres://rustwiki_user:rustwiki_pass@postgres:5432/rustwiki?sslmode=disable
+
+  frontend:
+    build: ./frontend
+    container_name: rustwiki_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
 volumes:
   postgres-data:

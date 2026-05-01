@@ -1,11 +1,20 @@
 # Project Binary
 rustwiki
+backend/main
 
 # Custom folders
 data/
 vendor/
-rustwiki/
+
+# IMPORTANT: Frontend dependencies (Do not push these!)
+frontend/node_modules/
+frontend/dist/
 
 # Logs and Temp files
 *.log
 *~
+.DS_Store
+.env
+
+# IDEs
+.vscode/
