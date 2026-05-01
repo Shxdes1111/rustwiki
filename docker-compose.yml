@@ -28,8 +28,13 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      - DB_URL=postgres://rustwiki_user:rustwiki_pass@postgres:5432/rustwiki?sslmode=disable
-
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=rustwiki_user
+      - DB_PASSWORD=rustwiki_pass
+      - DB_NAME=rustwiki
+      - DB_SSL_MODE=disable
+      
   frontend:
     build: ./frontend
     container_name: rustwiki_frontend

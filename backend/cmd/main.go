@@ -8,49 +8,30 @@ import (
 	"fmt"
 	"context"
 	"time"
-    "database/sql"
-    "encoding/json"
+    "backend/internal/config"
+    "backend/internal/logger"
+    "backend/internal/database"
+    "backend/internal/handlers"
+    "backend/internal/repository"
     _ "github.com/lib/pq"
 )
 
-type Env struct {
-    db *sql.DB
-}
-
-// This is now a "method" of Env
-func (en *Env) getWeapons(w http.ResponseWriter, r *http.Request) {
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Content-Type", "application/json")
-
-    rows, err := en.db.Query("SELECT id, name, type FROM weapon_item")
-    if err != nil {
-        http.Error(w, "Database error", 500)
-        return
-    }
-    defer rows.Close()
-
-    var weapons []map[string]interface{}
-    for rows.Next() {
-        var id int
-        var name, wType string
-        rows.Scan(&id, &name, &wType)
-        weapons = append(weapons, map[string]interface{}{
-            "id": id, "name": name, "type": wType,
-        })
-    }
-    json.NewEncoder(w).Encode(weapons)
-}
-
 func main() {
     // 1. Setup DB
-    dbURL := os.Getenv("DB_URL")
-    db, _ := sql.Open("postgres", dbURL)
+    cfg := config.Load()
+    log := logger.New(&cfg.Logger)
     
+    db, err := database.Connect(&cfg.Database, log)
+    if err != nil {
+        log.Fatalf("Failed to connect to database: %v", err)
+    }
+    defer db.Close()
     // 2. Initialize your environment
-    env := &Env{db: db}
+    weaponRepo := repository.NewWeaponRepository(db.DB)
+    weaponHandler := handlers.NewWeaponHandler(weaponRepo)
 
     // 3. Register routes using the env methods
-    http.HandleFunc("/api/weapons", env.getWeapons)
+    http.HandleFunc("/api/weapons", weaponHandler.GetWeapons)
     // 1. Create a channel to listen for OS signals
     stop := make(chan os.Signal, 1)
 
