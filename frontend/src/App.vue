@@ -12,8 +12,7 @@ onMounted(() => store.fetchWeapons())
 <template>
   <div class="wiki-container">
     <h1>RustWiki Weapons</h1>
-    <SearchBar />
-    <WeaponTable />
+    <RouterView />
   </div>
 </template>
 

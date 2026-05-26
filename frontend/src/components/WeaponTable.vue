@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { useWeaponStore } from '../stores/weapons'
 import { useToast } from 'vue-toastification'
+import { useRouter } from 'vue-router'
 
 const store = useWeaponStore()
 const toast = useToast()
+const router = useRouter()
 
 function showNotImplemented() {
   toast.info('Страница не заполнена')
+}
+function goToDetails(id: number) {
+  router.push({ name: 'weapon-details', params: { id } })
 }
 </script>
 
@@ -25,7 +30,10 @@ function showNotImplemented() {
         <td>{{ item.id }}</td>
         <td class="weapon-name">{{ item.name }}</td>
         <td><span class="badge">{{ item.type }}</span></td>
-        <td><button class="view-btn" @click="showNotImplemented">View Details</button></td>
+        <td>
+          <!-- Меняем @click -->
+          <button class="view-btn" @click="goToDetails(item.id)">View Details</button>
+        </td>
       </tr>
     </tbody>
   </table>
