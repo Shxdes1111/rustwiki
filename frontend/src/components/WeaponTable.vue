@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { useWeaponStore } from '../stores/weapons'
+import { useToast } from 'vue-toastification'
 
 const store = useWeaponStore()
+const toast = useToast()
+
+function showNotImplemented() {
+  toast.info('Страница не заполнена')
+}
 </script>
 
 <template>
@@ -19,7 +25,7 @@ const store = useWeaponStore()
         <td>{{ item.id }}</td>
         <td class="weapon-name">{{ item.name }}</td>
         <td><span class="badge">{{ item.type }}</span></td>
-        <td><button class="view-btn">View Details</button></td>
+        <td><button class="view-btn" @click="showNotImplemented">View Details</button></td>
       </tr>
     </tbody>
   </table>
