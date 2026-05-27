@@ -14,6 +14,8 @@ type ClothingItem struct {
 type Ingredients struct {
 	ID              int    `json:"id"`
 	Name            string `json:"name"`
+	Amount         *int   `json:"amount,omitempty"`
+	Icon           string `json:"icon,omitempty"`
 	WeaponItemID   *int   `json:"weapon_item_id,omitempty"`
 	ClothingItemID *int   `json:"clothing_item_id,omitempty"`
 }
