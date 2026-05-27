@@ -2,6 +2,7 @@
 import { useWeaponStore } from '../stores/weapons'
 import { useToast } from 'vue-toastification'
 import { useRouter } from 'vue-router'
+import SearchBar from './SearchBar.vue'
 
 const store = useWeaponStore()
 const toast = useToast()
@@ -16,6 +17,7 @@ function goToDetails(id: number) {
 </script>
 
 <template>
+  <SearchBar />
   <table class="wiki-table">
     <thead>
       <tr>

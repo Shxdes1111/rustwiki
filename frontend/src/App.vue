@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useWeaponStore } from './stores/weapons'
-import SearchBar from './components/SearchBar.vue'
-import WeaponTable from './components/WeaponTable.vue'
 
 const store = useWeaponStore()
 
