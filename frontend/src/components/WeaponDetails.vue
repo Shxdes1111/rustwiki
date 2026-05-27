@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useWeaponStore, type WeaponItem } from '../stores/weapons'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 const props = defineProps<{ id: string }>()
 const store = useWeaponStore()
 const router = useRouter()
 
-// Находим нужное оружие в сторе по ID
-const weapon = computed<WeaponItem | undefined>(() => {
-  return store.weapons.find(w => w.id === Number(props.id))
-})
+const weapon = ref<WeaponItem | null>(null)
+const error = ref<string | null>(null)
 
-// На случай, если пользователь обновил страницу, и стор пустой — перезапрашиваем данные
 onMounted(async () => {
-  if (store.weapons.length === 0) {
-    await store.fetchWeapons()
+  try {
+    weapon.value = await store.fetchWeapon(Number(props.id))
+  } catch {
+    error.value = 'Не удалось загрузить данные. Проверьте, запущен ли бэкенд.'
   }
 })
 </script>
@@ -98,6 +97,9 @@ onMounted(async () => {
         </div>
       </aside>
     </div>
+  </div>
+  <div v-else-if="error" class="loading error">
+    {{ error }}
   </div>
   <div v-else class="loading">
     Загрузка данных об оружии...
@@ -261,5 +263,9 @@ onMounted(async () => {
   text-align: center;
   padding: 40px;
   font-size: 1.2rem;
+}
+
+.loading.error {
+  color: #ef4444;
 }
 </style>

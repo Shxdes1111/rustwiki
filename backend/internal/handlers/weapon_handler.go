@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"backend/internal/repository"
 )
@@ -26,4 +27,27 @@ func (h *WeaponHandler) GetWeapons(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(weapons)
+}
+
+func (h *WeaponHandler) GetWeapon(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "Invalid weapon ID", http.StatusBadRequest)
+		return
+	}
+
+	weapon, err := h.weaponRepo.GetWeaponByID(id)
+	if err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+	if weapon == nil {
+		http.Error(w, "Weapon not found", http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(weapon)
 }

@@ -46,6 +46,12 @@ export const useWeaponStore = defineStore('weapons', () => {
     weapons.value = await res.json()
   }
 
+  async function fetchWeapon(id: number): Promise<WeaponItem> {
+    const res = await fetch(`http://localhost:8080/api/weapons/${id}`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  }
+
   const filteredWeapons = computed(() => {
     const s = searchTerm.value.toLowerCase()
     return weapons.value.filter(item =>
@@ -54,5 +60,5 @@ export const useWeaponStore = defineStore('weapons', () => {
     )
   })
 
-  return { weapons, searchTerm, filteredWeapons, fetchWeapons }
+  return { weapons, searchTerm, filteredWeapons, fetchWeapons, fetchWeapon }
 })
