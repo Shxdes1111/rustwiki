@@ -94,9 +94,3 @@ UPDATE mods SET icon = '/icons/mods/red_dot.png' WHERE name = 'Red Dot Sight';
 UPDATE mods SET icon = '/icons/mods/holo.png' WHERE name = 'Holographic Sight';
 UPDATE mods SET icon = '/icons/mods/scope.png' WHERE name = '8x Scope';
 UPDATE mods SET icon = '/icons/mods/muzzle.png' WHERE name = 'Muzzle Boost';
-
-UPDATE ingredients SET amount = 250, icon = '/icons/ingredients/metal_frags.png' WHERE name = 'Metal Fragments' AND weapon_item_id IS NOT NULL;
-UPDATE ingredients SET amount = 200, icon = '/icons/ingredients/wood.png' WHERE name = 'Wood' AND weapon_item_id IS NOT NULL;
-UPDATE ingredients SET amount = 15, icon = '/icons/ingredients/cloth.png' WHERE name = 'Cloth' AND clothing_item_id IS NOT NULL;
-UPDATE ingredients SET amount = 10, icon = '/icons/ingredients/hqm.png' WHERE name = 'High Quality Metal' AND clothing_item_id IS NOT NULL;
-UPDATE ingredients SET amount = 8, icon = '/icons/ingredients/animal_fat.png' WHERE name = 'Animal Fat' AND clothing_item_id IS NOT NULL;

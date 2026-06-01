@@ -28,7 +28,7 @@ func main() {
     defer db.Close()
     // 2. Initialize your environment
     weaponRepo := repository.NewWeaponRepository(db.DB)
-    weaponHandler := handlers.NewWeaponHandler(weaponRepo)
+    weaponHandler := handlers.NewWeaponHandler(weaponRepo, log)
 
     // 3. Register routes using the env methods
     http.HandleFunc("GET /api/weapons", weaponHandler.GetWeapons)

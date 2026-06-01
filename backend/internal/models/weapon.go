@@ -20,13 +20,13 @@ type WeaponItem struct {
 type Ammo struct {
 	ID           int    `json:"id"`
 	Name        string `json:"name"`
-	Icon        string `json:"icon,omitempty"`
+	Icon        *string `json:"icon,omitempty"`
 	WeaponItemID *int  `json:"weapon_item_id,omitempty"`
 }
 
 type Mods struct {
 	ID           int    `json:"id"`
 	Name        string `json:"name"`
-	Icon        string `json:"icon,omitempty"`
+	Icon        *string `json:"icon,omitempty"`
 	WeaponItemID *int  `json:"weapon_item_id,omitempty"`
 }

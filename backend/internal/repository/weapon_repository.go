@@ -20,7 +20,7 @@ func NewWeaponRepository(db *sql.DB) WeaponRepository {
 }
 
 func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
-	rows, err := r.db.Query(		"SELECT id, name, type, description, shortname, capacity, time_to_craft FROM weapon_item")
+	rows, err := r.db.Query("SELECT id, name, type, description, shortname, COALESCE(capacity, 0), COALESCE(time_to_craft, 0) FROM weapon_item")
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
 
 func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 	row := r.db.QueryRow(
-		"SELECT id, name, type, firemode, craftable, stacksize, description, shortname, capacity, time_to_craft, category_id FROM weapon_item WHERE id = $1",
+		"SELECT id, name, type, firemode, craftable, stacksize, description, shortname, COALESCE(capacity, 0), COALESCE(time_to_craft, 0), category_id FROM weapon_item WHERE id = $1",
 		id,
 	)
 
@@ -68,30 +68,47 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 	}
 
 	// mods
-	modRows, err := r.db.Query("SELECT id, name, icon, weapon_item_id FROM mods WHERE weapon_item_id = $1", id)
+	modRows, err := r.db.Query(`
+		SELECT m.id, m.name, m.icon, wm.weapon_item_id 
+		FROM mods m
+		JOIN weapon_mods wm ON m.id = wm.mod_id
+		WHERE wm.weapon_item_id = $1`, 
+		id,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer modRows.Close()
+
 	for modRows.Next() {
-		var mods models.Mods
-		if err := modRows.Scan(&mods.ID, &mods.Name, &mods.Icon, &mods.WeaponItemID); err != nil {
+		var mod models.Mods
+		// Теперь данные считываются корректно, включая id оружия из связующей таблицы
+		if err := modRows.Scan(&mod.ID, &mod.Name, &mod.Icon, &mod.WeaponItemID); err != nil {
 			return nil, err
 		}
-		weapon.Mods = append(weapon.Mods, mods)
+		weapon.Mods = append(weapon.Mods, mod)
 	}
 
 	// ingredients
-	ingRows, err := r.db.Query("SELECT id, name, amount, icon, weapon_item_id FROM ingredients WHERE weapon_item_id = $1", id)
+	ingRows, err := r.db.Query(`
+		SELECT i.id, i.name, wi.amount, i.icon 
+		FROM ingredients i
+		JOIN weapon_ingredients wi ON i.id = wi.ingredients_id
+		WHERE wi.weapon_item_id = $1`, 
+		id,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer ingRows.Close()
+
 	for ingRows.Next() {
 		var ing models.Ingredients
-		if err := ingRows.Scan(&ing.ID, &ing.Name, &ing.Amount, &ing.Icon, &ing.WeaponItemID); err != nil {
+		// Переменные сканируются в том же порядке, сохраняя структуру models.Ingredients без изменений
+		if err := ingRows.Scan(&ing.ID, &ing.Name, &ing.Amount, &ing.Icon); err != nil {
 			return nil, err
 		}
+		ing.WeaponItemID = &id 
 		weapon.Ingredients = append(weapon.Ingredients, ing)
 	}
 

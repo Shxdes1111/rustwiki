@@ -44,18 +44,27 @@ CREATE TABLE ammo (
 CREATE TABLE mods (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    icon VARCHAR(255),
-    weapon_item_id INTEGER REFERENCES weapon_item(id)
+    icon VARCHAR(255)
+);
+
+CREATE TABLE weapon_mods (
+    weapon_item_id INTEGER REFERENCES weapon_item(id) ON DELETE CASCADE,
+    mod_id INTEGER REFERENCES mods(id) ON DELETE CASCADE,
+    PRIMARY KEY (weapon_item_id, mod_id) -- Составной ключ, чтобы избежать дублей связей
 );
 
 -- ingredients
 CREATE TABLE ingredients (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    amount INTEGER,
-    icon VARCHAR(255),
-    weapon_item_id INTEGER REFERENCES weapon_item(id),
-    clothing_item_id INTEGER REFERENCES clothing_item(id)
+    name VARCHAR(255) NOT NULL UNIQUE,
+    icon VARCHAR(255)
+);
+
+CREATE TABLE weapon_ingredients (
+    weapon_item_id INTEGER REFERENCES weapon_item(id) ON DELETE CASCADE,
+    ingredients_id INTEGER REFERENCES ingredients(id) ON DELETE CASCADE,
+    amount INTEGER NOT NULL DEFAULT 1,
+    PRIMARY KEY (weapon_item_id, ingredients_id)
 );
 
 -- insert data
@@ -95,16 +104,32 @@ INSERT INTO ammo (name, icon, weapon_item_id) VALUES
     ('Arrow', '/icons/ammo/arrow.png', 10),
     ('Handmade Shell', '/icons/ammo/shells.png', 6);
 
-INSERT INTO mods (name, icon, weapon_item_id) VALUES
-    ('Silencer', '/icons/mods/silencer.png', 1),
-    ('Red Dot Sight', '/icons/mods/red_dot.png', 3),
-    ('Holographic Sight', '/icons/mods/holo.png', 5),
-    ('8x Scope', '/icons/mods/scope.png', 10),
-    ('Muzzle Boost', '/icons/mods/muzzle.png', 7);
+INSERT INTO mods (name, icon) VALUES
+    ('Silencer', '/icons/mods/silencer.png'),
+    ('Red Dot Sight', '/icons/mods/red_dot.png'),
+    ('Holographic Sight', '/icons/mods/holo.png'),
+    ('8x Scope', '/icons/mods/scope.png'),
+    ('Muzzle Boost', '/icons/mods/muzzle.png');
 
-INSERT INTO ingredients (name, amount, icon, weapon_item_id, clothing_item_id) VALUES
-    ('Metal Fragments',    250, '/icons/ingredients/metal_frags.png', 1, NULL),
-    ('Wood',              200, '/icons/ingredients/wood.png',        10, NULL),
-    ('Cloth',              15, '/icons/ingredients/cloth.png',       NULL, 2),
-    ('High Quality Metal', 10, '/icons/ingredients/hqm.png',         NULL, 9),
-    ('Animal Fat',          8, '/icons/ingredients/animal_fat.png',  NULL, 8);
+INSERT INTO weapon_mods (weapon_item_id, mod_id) VALUES
+    (1, 1),   -- Silencer для AK-47 (id 1)
+    (3, 2),   -- Red Dot Sight для MP5A4 (id 3)
+    (5, 3),   -- Holographic Sight для Pump Shotgun (id 5)
+    (10, 4),  -- 8x Scope для Hunting Bow (id 10)
+    (7, 5),   -- Muzzle Boost для Revolver (id 7)
+    (1, 4),   -- 8x Scope для AK-47
+    (1, 3),   -- 8x Scope для AK-47
+    (1, 2), 
+    (1, 5); 
+
+INSERT INTO ingredients (name, icon) VALUES
+    ('Metal Fragments', '/icons/ingredients/metal_frags.png'),
+    ('Wood', '/icons/ingredients/wood.png'),
+    ('Cloth', '/icons/ingredients/cloth.png'),
+    ('High Quality Metal', '/icons/ingredients/hqm.png'),
+    ('Animal Fat', '/icons/ingredients/animal_fat.png');
+
+INSERT INTO weapon_ingredients (weapon_item_id, ingredients_id, amount) VALUES
+    (1,1, 250),
+    (2,1, 150),
+    (3,2, 200);

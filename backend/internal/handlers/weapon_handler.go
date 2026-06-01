@@ -5,15 +5,17 @@ import (
 	"net/http"
 	"strconv"
 
+	"backend/internal/logger"
 	"backend/internal/repository"
 )
 
 type WeaponHandler struct {
 	weaponRepo repository.WeaponRepository
+	Logger *logger.Logger
 }
 
-func NewWeaponHandler(weaponRepo repository.WeaponRepository) *WeaponHandler {
-	return &WeaponHandler{weaponRepo: weaponRepo}
+func NewWeaponHandler(weaponRepo repository.WeaponRepository, log *logger.Logger) *WeaponHandler {
+	return &WeaponHandler{weaponRepo: weaponRepo, Logger: log}
 }
 
 func (h *WeaponHandler) GetWeapons(w http.ResponseWriter, r *http.Request) {
@@ -41,6 +43,7 @@ func (h *WeaponHandler) GetWeapon(w http.ResponseWriter, r *http.Request) {
 
 	weapon, err := h.weaponRepo.GetWeaponByID(id)
 	if err != nil {
+		h.Logger.Errorf("ERROR: %v", err)
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
