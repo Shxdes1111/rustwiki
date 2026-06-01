@@ -24,12 +24,13 @@ a,
 @media (min-width: 1024px) {
   body {
     display: flex;
-    place-items: center;
+    flex-direction: column; /* Выстраиваем контент в колонку сверху вниз */
+    justify-content: flex-start; /* Прижимаем строго к верху */
+    align-items: center; /* Центрируем по горизонтали */
+    min-height: 100vh;
   }
-
   #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    
     padding: 0 2rem;
   }
 }

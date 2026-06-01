@@ -138,7 +138,7 @@ onMounted(async () => {
 
 .page-title {
   font-size: 2.5rem;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid #5d5d5d;
   padding-bottom: 10px;
   margin-bottom: 20px;
 }
@@ -155,7 +155,7 @@ onMounted(async () => {
 
 .crafting-section h2 {
   font-size: 1.8rem;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid #5d5d5d;
   padding-bottom: 5px;
 }
 
@@ -178,15 +178,15 @@ onMounted(async () => {
 /* СТИЛИ ИНФОБОКСА (Правая панель) */
 .infobox {
   width: 320px;
-  background-color: #1e293b;
-  border: 1px solid #334155;
+  background-color: #4b4b4c;
+  border: 1px solid #5d5d5d;
   border-radius: 6px;
   overflow: hidden;
   align-self: flex-start;
 }
 
 .infobox-header {
-  background-color: #ef4444;
+  background-color: #9f2f2f;
   color: white;
   text-align: center;
   padding: 10px;
@@ -197,7 +197,7 @@ onMounted(async () => {
 .infobox-image-box {
   padding: 20px;
   text-align: center;
-  background-color: #0f172a;
+  background-color: #2a2a2a;
 }
 
 .placeholder-img {
@@ -212,7 +212,7 @@ onMounted(async () => {
 }
 
 .infobox-section-title {
-  background-color: #ef4444;
+  background-color: #9f2f2f;
   color: white;
   padding: 6px 12px;
   font-size: 0.95rem;
@@ -225,7 +225,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   padding: 8px 12px;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid #676767;
   font-size: 0.9rem;
 }
 
@@ -239,12 +239,12 @@ onMounted(async () => {
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px;
-  background-color: #0f172a;
+  background-color: #2a2a2a;
 }
 
 .grid-item {
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #464646;
+  border: 1px solid #5d5d5d;
   padding: 8px;
   border-radius: 4px;
   display: flex;
@@ -266,6 +266,6 @@ onMounted(async () => {
 }
 
 .loading.error {
-  color: #ef4444;
+  color: #9f2f2f;
 }
 </style>

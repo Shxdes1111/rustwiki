@@ -1,14 +1,31 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useWeaponStore } from '../stores/weapons'
 
 const store = useWeaponStore()
+
+// 1. Создаем переменную для динамического placeholder
+const placeholderText = ref('🔍 Search weapons...')
+
+// 2. Функция, когда пользователь кликнул на инпут (Фокус)
+const handleFocus = () => {
+  placeholderText.value = ''
+}
+
+// 3. Функция, когда пользователь убрал клик с инпута (Блур)
+const handleBlur = () => {
+  placeholderText.value = '🔍 Search weapons...'
+}
 </script>
 
 <template>
   <div class="search-section">
+    <!-- Связываем placeholder с переменной и вешаем слушатели событий -->
     <input
       v-model="store.searchTerm"
-      placeholder="🔍 Search weapons..."
+      :placeholder="placeholderText"
+      @focus="handleFocus"
+      @blur="handleBlur"
       class="search-input"
     />
   </div>
@@ -32,8 +49,9 @@ const store = useWeaponStore()
   box-sizing: border-box;
 }
 
+/* Изменяем цвет рамки при фокусе (если нужно) */
 .search-input:focus {
-  border-color: #42b883;
+  border-color: #ef4444; /* Цвет Vue (зеленый) */
 }
 
 .search-input::placeholder {
