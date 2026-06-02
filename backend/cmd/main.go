@@ -28,11 +28,18 @@ func main() {
     defer db.Close()
     // 2. Initialize your environment
     weaponRepo := repository.NewWeaponRepository(db.DB)
+    modRepo := repository.NewModRepository(db.DB)
+	ammoRepo := repository.NewAmmoRepository(db.DB)
+
     weaponHandler := handlers.NewWeaponHandler(weaponRepo, log)
+    modHandler := handlers.NewModHandler(modRepo, log)
+	ammoHandler := handlers.NewAmmoHandler(ammoRepo, log)
 
     // 3. Register routes using the env methods
     http.HandleFunc("GET /api/weapons", weaponHandler.GetWeapons)
     http.HandleFunc("GET /api/weapons/{id}", weaponHandler.GetWeapon)
+    http.HandleFunc("GET /api/mods/{id}", modHandler.GetMod)
+    http.HandleFunc("GET /api/ammo/{id}", ammoHandler.GetAmmo)
     // 1. Create a channel to listen for OS signals
     stop := make(chan os.Signal, 1)
 
