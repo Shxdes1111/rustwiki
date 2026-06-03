@@ -45,9 +45,20 @@ export interface WeaponItem {
   mods?: WeaponMod[];
 }
 
+const CACHE_TTL = 2 * 60 * 1000 // 2 минуты
+
 export const useWeaponStore = defineStore('weapons', () => {
   const weapons = ref<WeaponItem[]>([])
   const searchTerm = ref('')
+
+  const weaponCache = ref<Record<number, WeaponItem>>({})
+  const weaponTimestamps = ref<Record<number, number>>({})
+
+  const ammoCache = ref<Record<number, AmmoDetail>>({})
+  const ammoTimestamps = ref<Record<number, number>>({})
+
+  const modCache = ref<Record<number, ModDetail>>({})
+  const modTimestamps = ref<Record<number, number>>({})
 
   async function fetchWeapons() {
     const res = await fetch('http://localhost:8080/api/weapons')
@@ -55,21 +66,39 @@ export const useWeaponStore = defineStore('weapons', () => {
   }
 
   async function fetchWeapon(id: number): Promise<WeaponItem> {
+    if (weaponCache.value[id] && Date.now() - weaponTimestamps.value[id] < CACHE_TTL) {
+      return weaponCache.value[id]
+    }
     const res = await fetch(`http://localhost:8080/api/weapons/${id}`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    return await res.json()
+    const data = await res.json()
+    weaponCache.value[id] = data
+    weaponTimestamps.value[id] = Date.now()
+    return data
   }
 
   async function fetchAmmo(id: number): Promise<AmmoDetail> {
+    if (ammoCache.value[id] && Date.now() - ammoTimestamps.value[id] < CACHE_TTL) {
+      return ammoCache.value[id]
+    }
     const res = await fetch(`http://localhost:8080/api/ammo/${id}`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    return await res.json()
+    const data = await res.json()
+    ammoCache.value[id] = data
+    ammoTimestamps.value[id] = Date.now()
+    return data
   }
 
   async function fetchMod(id: number): Promise<ModDetail> {
+    if (modCache.value[id] && Date.now() - modTimestamps.value[id] < CACHE_TTL) {
+      return modCache.value[id]
+    }
     const res = await fetch(`http://localhost:8080/api/mods/${id}`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    return await res.json()
+    const data = await res.json()
+    modCache.value[id] = data
+    modTimestamps.value[id] = Date.now()
+    return data
   }
 
   const filteredWeapons = computed(() => {
