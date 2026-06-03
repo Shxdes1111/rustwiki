@@ -68,18 +68,18 @@ onMounted(async () => {
         <!-- Раздел: Ammunition -->
         <div class="infobox-section-title">Ammunition</div>
         <div class="infobox-grid">
-          <div v-for="ammo in weapon.ammo" :key="ammo.id" class="grid-item" :title="ammo.name">
+          <router-link v-for="ammo in weapon.ammo" :key="ammo.id" :to="`/ammo/${ammo.id}`" class="grid-item" :title="ammo.name">
             📦 <span class="grid-item-text">{{ ammo.name }}</span>
-          </div>
+          </router-link>
           <div v-if="!weapon.ammo?.length" class="empty-text">No custom ammo slots</div>
         </div>
 
         <!-- Раздел: Weapon Mods -->
         <div class="infobox-section-title">Weapon Mods</div>
         <div class="infobox-grid">
-          <div v-for="mod in weapon.mods" :key="mod.id" class="grid-item" :title="mod.name">
+          <router-link v-for="mod in weapon.mods" :key="mod.id" :to="`/mods/${mod.id}`" class="grid-item" :title="mod.name">
             🔧 <span class="grid-item-text">{{ mod.name }}</span>
-          </div>
+          </router-link>
           <div v-if="!weapon.mods?.length" class="empty-text">No mods supported</div>
         </div>
 
@@ -251,6 +251,13 @@ onMounted(async () => {
   align-items: center;
   gap: 5px;
   font-size: 0.8rem;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.2s;
+}
+
+.grid-item:hover {
+  background: #5a5a5a;
 }
 
 .empty-text {

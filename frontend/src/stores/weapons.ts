@@ -4,8 +4,8 @@ import { defineStore } from 'pinia'
 export interface Ingredient {
   id: number;
   name: string;
-  amount?: number; // количество для крафта (например, x125)
-  icon?: string;   // путь к картинке
+  amount?: number;
+  icon?: string;
 }
 
 export interface Ammo {
@@ -18,6 +18,14 @@ export interface WeaponMod {
   id: number;
   name: string;
   icon?: string;
+}
+
+export interface AmmoDetail extends Ammo {
+  compatible_weapons: WeaponItem[]
+}
+
+export interface ModDetail extends WeaponMod {
+  compatible_weapons: WeaponItem[]
 }
 
 export interface WeaponItem {
@@ -52,6 +60,18 @@ export const useWeaponStore = defineStore('weapons', () => {
     return await res.json()
   }
 
+  async function fetchAmmo(id: number): Promise<AmmoDetail> {
+    const res = await fetch(`http://localhost:8080/api/ammo/${id}`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  }
+
+  async function fetchMod(id: number): Promise<ModDetail> {
+    const res = await fetch(`http://localhost:8080/api/mods/${id}`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  }
+
   const filteredWeapons = computed(() => {
     const s = searchTerm.value.toLowerCase()
     return weapons.value.filter(item =>
@@ -60,5 +80,5 @@ export const useWeaponStore = defineStore('weapons', () => {
     )
   })
 
-  return { weapons, searchTerm, filteredWeapons, fetchWeapons, fetchWeapon }
+  return { weapons, searchTerm, filteredWeapons, fetchWeapons, fetchWeapon, fetchAmmo, fetchMod }
 })

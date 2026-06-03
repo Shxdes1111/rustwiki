@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import WeaponTable from '../components/WeaponTable.vue' // или где у вас главная страница
+import WeaponTable from '../components/WeaponTable.vue'
 import WeaponDetails from '../components/WeaponDetails.vue'
+import AmmoDetails from '../components/AmmoDetails.vue'
+import ModDetails from '../components/ModDetails.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,7 +16,19 @@ const router = createRouter({
       path: '/weapon/:id',
       name: 'weapon-details',
       component: WeaponDetails,
-      props: true // позволяет передавать id как prop в компонент
+      props: true
+    },
+    {
+      path: '/ammo/:id',
+      name: 'ammo-details',
+      component: AmmoDetails,
+      props: true
+    },
+    {
+      path: '/mods/:id',
+      name: 'mod-details',
+      component: ModDetails,
+      props: true
     }
   ]
 })
