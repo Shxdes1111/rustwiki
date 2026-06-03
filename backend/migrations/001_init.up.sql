@@ -36,8 +36,13 @@ CREATE TABLE clothing_item (
 CREATE TABLE ammo (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    icon VARCHAR(255),
-    weapon_item_id INTEGER REFERENCES weapon_item(id)
+    icon VARCHAR(255)
+);
+
+CREATE TABLE weapon_ammo (
+    weapon_item_id INTEGER REFERENCES weapon_item (id) ON DELETE CASCADE,
+    ammo_id INTEGER REFERENCES ammo (id) ON DELETE CASCADE,
+    PRIMARY KEY (weapon_item_id, ammo_id) -- Составной ключ защитит от дублей
 );
 
 -- mods
@@ -97,12 +102,23 @@ INSERT INTO clothing_item (name, equipmentslot, protection, craftable, stacksize
     ('Bone Helmet', 'head', 15, true, 1, 2),
     ('Coffee Can Helmet', 'head', 20, true, 1, 2);
 
-INSERT INTO ammo (name, icon, weapon_item_id) VALUES
-    ('5.56mm Rifle Ammo', '/icons/ammo/rifle.png', 1),
-    ('9mm Pistol Ammo', '/icons/ammo/pistol.png', 3),
-    ('12 Gauge Shells', '/icons/ammo/shells.png', 5),
-    ('Arrow', '/icons/ammo/arrow.png', 10),
-    ('Handmade Shell', '/icons/ammo/shells.png', 6);
+INSERT INTO ammo (id, name, icon) VALUES
+    (1, '5.56mm Rifle Ammo', '/icons/ammo/rifle.png'),
+    (2, '9mm Pistol Ammo', '/icons/ammo/pistol.png'),
+    (3, '12 Gauge Shells', '/icons/ammo/shells.png'),
+    (4, 'Arrow', '/icons/ammo/arrow.png'),
+    (5, 'Handmade Shell', '/icons/ammo/shells.png');
+
+INSERT INTO weapon_ammo (weapon_item_id, ammo_id) VALUES
+    (1, 1), -- AK-47 (id 1) использует 5.56mm (id 1)
+    (2, 1), -- M4A4 (id 2) использует 5.56mm (id 1)
+    (3, 2), -- MP5A4 (id 3) использует 9mm (id 2)
+    (4, 2), -- Tommy Gun (id 4) использует 9mm (id 2)
+    (5, 3), -- Pump Shotgun (id 5) использует 12 Gauge (id 3)
+    (6, 5), -- Double Barrel (id 6) использует Handmade Shell (id 5)
+    (7, 2), -- Revolver (id 7) использует 9mm (id 2)
+    (8, 2), -- Semi-Auto Pistol (id 8) использует 9mm (id 2)
+    (10, 4); -- Hunting Bow (id 10) использует Arrow (id 4)
 
 INSERT INTO mods (name, icon) VALUES
     ('Silencer', '/icons/mods/silencer.png'),

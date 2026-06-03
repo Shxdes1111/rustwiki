@@ -54,18 +54,25 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 	}
 
 	// ammo
-	ammoRows, err := r.db.Query("SELECT id, name, icon, weapon_item_id FROM ammo WHERE weapon_item_id = $1", id)
-	if err != nil {
-		return nil, err
-	}
-	defer ammoRows.Close()
-	for ammoRows.Next() {
-		var ammo models.Ammo
-		if err := ammoRows.Scan(&ammo.ID, &ammo.Name, &ammo.Icon, &ammo.WeaponItemID); err != nil {
-			return nil, err
-		}
-		weapon.Ammo = append(weapon.Ammo, ammo)
-	}
+	ammoRows, err := r.db.Query(`
+        SELECT a.id, a.name, a.icon 
+        FROM ammo a
+        JOIN weapon_ammo wa ON a.id = wa.ammo_id
+        WHERE wa.weapon_item_id = $1`, 
+        id,
+    )
+    if err != nil {
+        return nil, err
+    }
+    defer ammoRows.Close()
+
+    for ammoRows.Next() {
+        var ammo models.Ammo
+        if err := ammoRows.Scan(&ammo.ID, &ammo.Name, &ammo.Icon); err != nil {
+            return nil, err
+        }
+        weapon.Ammo = append(weapon.Ammo, ammo)
+    }
 
 	// mods
 	modRows, err := r.db.Query(`
