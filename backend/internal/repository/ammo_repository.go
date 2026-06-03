@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 
+	"backend/internal/logger"
 	"backend/internal/models"
 )
 
@@ -11,15 +12,17 @@ type AmmoRepository interface {
 }
 
 type ammoRepository struct {
-	db *sql.DB
+	db  *sql.DB
+	log *logger.Logger
 }
 
-func NewAmmoRepository(db *sql.DB) AmmoRepository {
-	return &ammoRepository{db: db}
+func NewAmmoRepository(db *sql.DB, log *logger.Logger) AmmoRepository {
+	return &ammoRepository{db: db, log: log}
 }
 
 func (r *ammoRepository) GetAmmoByID (id int) (*models.Ammo, error) {
     // 1. Получаем базовую информацию о патроне (убрали weapon_item_id из SELECT)
+    r.log.Info("GetAmmoByID: делаю запрос в таблицу ammo")
     row := r.db.QueryRow(
         "SELECT id, name, icon FROM ammo WHERE id = $1",
         id,
@@ -35,6 +38,7 @@ func (r *ammoRepository) GetAmmoByID (id int) (*models.Ammo, error) {
     }
 
     // 2. Находим всё оружие через связующую таблицу weapon_ammo (Честный JOIN)
+    r.log.Info("GetAmmoByID: делаю запрос в таблицы weapon_item и weapon_ammo")
     weaponRows, err := r.db.Query(`
         SELECT w.id, w.name, w.type, w.description, w.shortname, 
                COALESCE(w.capacity, 0), COALESCE(w.time_to_craft, 0)

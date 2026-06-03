@@ -27,9 +27,9 @@ func main() {
     }
     defer db.Close()
     // 2. Initialize your environment
-    weaponRepo := repository.NewWeaponRepository(db.DB)
-    modRepo := repository.NewModRepository(db.DB)
-	ammoRepo := repository.NewAmmoRepository(db.DB)
+    weaponRepo := repository.NewWeaponRepository(db.DB, log)
+    modRepo := repository.NewModRepository(db.DB, log)
+	ammoRepo := repository.NewAmmoRepository(db.DB, log)
 
     weaponHandler := handlers.NewWeaponHandler(weaponRepo, log)
     modHandler := handlers.NewModHandler(modRepo, log)

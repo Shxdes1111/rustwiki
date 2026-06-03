@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 
+	"backend/internal/logger"
 	"backend/internal/models"
 )
 
@@ -11,15 +12,17 @@ type ModRepository interface {
 }
 
 type modRepository struct {
-	db *sql.DB
+	db  *sql.DB
+	log *logger.Logger
 }
 
-func NewModRepository(db *sql.DB) ModRepository {
-	return &modRepository{db: db}
+func NewModRepository(db *sql.DB, log *logger.Logger) ModRepository {
+	return &modRepository{db: db, log: log}
 }
 
 func (r *modRepository) GetModByID(id int) (*models.Mods, error) {
 	// 1. Получаем сам модуль
+	r.log.Info("GetModByID: делаю запрос в таблицу mods")
 	row := r.db.QueryRow(
 		"SELECT id, name, icon FROM mods WHERE id = $1",
 		id,
@@ -36,6 +39,7 @@ func (r *modRepository) GetModByID(id int) (*models.Mods, error) {
 
 	// 2. Находим всё оружие, к которому подходит этот модуль (Many-to-Many)
 	// Используем честный JOIN через таблицу weapon_mods
+	r.log.Info("GetModByID: делаю запрос в таблицы weapon_item и weapon_mods")
 	weaponRows, err := r.db.Query(`
 		SELECT w.id, w.name, w.type, w.description, w.shortname, COALESCE(w.capacity, 0), COALESCE(w.time_to_craft, 0)
 		FROM weapon_item w

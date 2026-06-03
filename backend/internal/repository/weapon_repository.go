@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 
+	"backend/internal/logger"
 	"backend/internal/models"
 )
 
@@ -12,14 +13,16 @@ type WeaponRepository interface {
 }
 
 type weaponRepository struct {
-	db *sql.DB
+	db  *sql.DB
+	log *logger.Logger
 }
 
-func NewWeaponRepository(db *sql.DB) WeaponRepository {
-	return &weaponRepository{db: db}
+func NewWeaponRepository(db *sql.DB, log *logger.Logger) WeaponRepository {
+	return &weaponRepository{db: db, log: log}
 }
 
 func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
+	r.log.Info("GetAllWeapons: делаю запрос в таблицу weapon_item")
 	rows, err := r.db.Query("SELECT id, name, type, description, shortname, COALESCE(capacity, 0), COALESCE(time_to_craft, 0) FROM weapon_item")
 	if err != nil {
 		return nil, err
@@ -39,6 +42,7 @@ func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
 }
 
 func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
+	r.log.Info("GetWeaponByID: делаю запрос в таблицу weapon_item")
 	row := r.db.QueryRow(
 		"SELECT id, name, type, firemode, craftable, stacksize, description, shortname, COALESCE(capacity, 0), COALESCE(time_to_craft, 0), category_id FROM weapon_item WHERE id = $1",
 		id,
@@ -54,6 +58,7 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 	}
 
 	// ammo
+	r.log.Info("GetWeaponByID: делаю запрос в таблицы ammo и weapon_ammo")
 	ammoRows, err := r.db.Query(`
         SELECT a.id, a.name, a.icon 
         FROM ammo a
@@ -75,6 +80,7 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
     }
 
 	// mods
+	r.log.Info("GetWeaponByID: делаю запрос в таблицы mods и weapon_mods")
 	modRows, err := r.db.Query(`
 		SELECT m.id, m.name, m.icon, wm.weapon_item_id 
 		FROM mods m
@@ -97,6 +103,7 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 	}
 
 	// ingredients
+	r.log.Info("GetWeaponByID: делаю запрос в таблицы ingredients и weapon_ingredients")
 	ingRows, err := r.db.Query(`
 		SELECT i.id, i.name, wi.amount, i.icon 
 		FROM ingredients i
