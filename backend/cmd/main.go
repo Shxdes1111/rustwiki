@@ -13,6 +13,7 @@ import (
     "backend/internal/database"
     "backend/internal/handlers"
     "backend/internal/repository"
+    "backend/internal/seed"
     _ "github.com/lib/pq"
 )
 
@@ -26,6 +27,11 @@ func main() {
         log.Fatalf("Failed to connect to database: %v", err)
     }
     defer db.Close()
+
+    if err := seed.Seed(db.DB, log); err != nil {
+        log.Fatalf("Failed to seed database: %v", err)
+    }
+
     // 2. Initialize your environment
     weaponRepo := repository.NewWeaponRepository(db.DB, log)
     modRepo := repository.NewModRepository(db.DB, log)
