@@ -139,16 +139,16 @@ func Seed(db *sql.DB, log *logger.Logger) error {
 	weapons := []weaponSeed{
 		{
 			ID: 1, Name: "Assault Rifle", Type: "range", Firemode: "automatic", Craftable: true, Stacksize: 1,
-			Description: "The AK-47 is a powerful automatic rifle, deadly at medium range. A favorite among Rust players.",
-			Shortname: "ak47", Capacity: ptr(30), TimeToCraft: ptr(15), CategoryID: 1,
+			Description: "The Assault Rifle is a powerful automatic rifle, deadly at medium range. A favorite among Rust players.",
+			Shortname: "ar", Capacity: ptr(30), TimeToCraft: ptr(15), CategoryID: 1,
 			AmmoIDs: []int{1, 2, 3, 4},
 			ModIDs:  []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15},
 			Ingredients: []ingredientSeed{{1, 250}},
 		},
 		{
 			ID: 2, Name: "LR-300", Type: "range", Firemode: "automatic", Craftable: false, Stacksize: 1,
-			Description: "The M4A4 is a high-accuracy automatic rifle. Cannot be crafted — only found in loot crates.",
-			Shortname: "m4a4", Capacity: ptr(30), TimeToCraft: nil, CategoryID: 1,
+			Description: "The LR-300 is a high-accuracy automatic rifle. Cannot be crafted — only found in loot crates.",
+			Shortname: "lr300", Capacity: ptr(30), TimeToCraft: nil, CategoryID: 1,
 			AmmoIDs: []int{1, 2, 3, 4},
 			ModIDs:  []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 14, 15},
 			Ingredients: []ingredientSeed{{1, 150}},
