@@ -1,14 +1,37 @@
 @import './base.css';
+@import url('https://googleapis.com');
+
+:root {
+  --font-headings: 'Comfortaa', cursive;
+  --font-base: 'Nunito', sans-serif;
+}
+
+body {
+  font-family: var(--font-base);
+  background-color: #121212;
+  background-image: url('/src/assets/background1.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  color: #e0e0e0;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-headings);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
 
 #app {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   font-weight: normal;
+  background-color: #121212;
 }
 
-a,
-.green {
+a,.green {
   text-decoration: none;
   color: hsla(160, 100%, 37%, 1);
   transition: 0.4s;

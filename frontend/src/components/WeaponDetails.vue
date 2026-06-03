@@ -65,23 +65,37 @@ onMounted(async () => {
         <div class="infobox-row"><span>Fire Mode</span><span class="value">{{ weapon.firemode }}</span></div>
         <div class="infobox-row"><span>Capacity</span><span class="value">{{ weapon.capacity || '—' }}</span></div>
 
-        <!-- Раздел: Ammunition -->
+        <!-- Раздел: Ammunition (Переведен на умную компактную сетку) -->
         <div class="infobox-section-title">Ammunition</div>
-        <div class="infobox-grid">
-          <router-link v-for="ammo in weapon.ammo" :key="ammo.id" :to="`/ammo/${ammo.id}`" class="grid-item" :title="ammo.name">
-            📦 <span class="grid-item-text">{{ ammo.name }}</span>
+        <div v-if="weapon.ammo?.length" class="infobox-grid">
+          <router-link 
+            v-for="ammo in weapon.ammo" 
+            :key="ammo.id" 
+            :to="`/ammo/${ammo.id}`" 
+            class="grid-item" 
+            :title="ammo.name"
+          >
+            <span class="item-icon">📦</span> 
+            <span class="grid-item-text">{{ ammo.name }}</span>
           </router-link>
-          <div v-if="!weapon.ammo?.length" class="empty-text">No custom ammo slots</div>
         </div>
+        <div v-else class="empty-box">No custom ammo slots</div>
 
-        <!-- Раздел: Weapon Mods -->
+        <!-- Раздел: Weapon Mods (Переведен на умную компактную сетку) -->
         <div class="infobox-section-title">Weapon Mods</div>
-        <div class="infobox-grid">
-          <router-link v-for="mod in weapon.mods" :key="mod.id" :to="`/mods/${mod.id}`" class="grid-item" :title="mod.name">
-            🔧 <span class="grid-item-text">{{ mod.name }}</span>
+        <div v-if="weapon.mods?.length" class="infobox-grid">
+          <router-link 
+            v-for="mod in weapon.mods" 
+            :key="mod.id" 
+            :to="`/mods/${mod.id}`" 
+            class="grid-item" 
+            :title="mod.name"
+          >
+            <span class="item-icon">🔧</span> 
+            <span class="grid-item-text">{{ mod.name }}</span>
           </router-link>
-          <div v-if="!weapon.mods?.length" class="empty-text">No mods supported</div>
         </div>
+        <div v-else class="empty-box">No mods supported</div>
 
         <!-- Раздел: Crafting Info -->
         <div class="infobox-section-title">Crafting</div>
@@ -91,7 +105,7 @@ onMounted(async () => {
         <!-- Раздел: Ingredients Icons -->
         <div class="infobox-section-title">Ingredients</div>
         <div class="infobox-grid bg-darker">
-          <div v-for="ing in weapon.ingredients" :key="ing.id" class="grid-item">
+          <div v-for="ing in weapon.ingredients" :key="ing.id" class="grid-item content-center">
             💎 <span class="count">x{{ ing.amount || 1 }}</span>
           </div>
         </div>
@@ -183,6 +197,7 @@ onMounted(async () => {
   border-radius: 6px;
   overflow: hidden;
   align-self: flex-start;
+  flex-shrink: 0;
 }
 
 .infobox-header {
@@ -234,36 +249,70 @@ onMounted(async () => {
   color: #f8fafc;
 }
 
+/* Оптимизированная CSS Grid сетка для модов и патронов */
 .infobox-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px;
+  display: grid;
+  /* В инфобоксе шириной 320px две колонки по ~130px встанут идеально с учетом padding */
+  grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+  gap: 6px;
+  padding: 10px;
   background-color: #2a2a2a;
 }
 
+.bg-darker {
+  background-color: #1f1f1f;
+}
+
+/* Элемент сетки (Мод / Патрон) */
 .grid-item {
   background: #464646;
   border: 1px solid #5d5d5d;
-  padding: 8px;
+  padding: 6px 8px;
   border-radius: 4px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-size: 0.8rem;
   text-decoration: none;
   color: inherit;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  
+  /* Защита от деформации и переносов */
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .grid-item:hover {
   background: #5a5a5a;
+  border-color: #ef4444; /* Красная рамка при наведении в тон шапки */
 }
 
-.empty-text {
+.item-icon {
+  flex-shrink: 0; /* Иконка эмодзи/картинки не сожмется */
+}
+
+.grid-item-text {
+  overflow: hidden;
+  text-overflow: ellipsis; /* Длинное название плавно скроется троеточием */
+}
+
+.content-center {
+  justify-content: center;
+}
+
+.count {
+  font-weight: bold;
+  color: #cbd5e1;
+}
+
+/* Пустой контейнер для красивого отображения отсутствия элементов */
+.empty-box {
   font-size: 0.85rem;
-  color: #64748b;
-  padding: 4px;
+  color: #8392a5;
+  font-style: italic;
+  padding: 12px;
+  background-color: #2a2a2a;
+  text-align: center;
 }
 
 .loading {
