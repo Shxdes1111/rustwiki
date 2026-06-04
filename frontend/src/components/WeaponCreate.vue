@@ -71,11 +71,13 @@ const handleSubmit = () => {
       <div class="form-group">
         <label>Ammunition</label>
         <div class="checkbox-grid">
-          <label v-for="a in store.ammoList" :key="a.id" class="checkbox-item">
-            <input type="checkbox" :value="a.id" v-model="selectedAmmo" />
-            <img v-if="a.icon" :src="a.icon" :alt="a.name" class="grid-icon" />
-            <span>{{ a.name }}</span>
-          </label>
+          <div v-for="a in store.ammoList" :key="a.id" class="checkbox-item">
+            <label class="checkbox-content">
+              <input type="checkbox" :value="a.id" v-model="selectedAmmo" />
+              <img v-if="a.icon" :src="a.icon" :alt="a.name" class="grid-icon" />
+            </label>
+            <span class="item-name">{{ a.name }}</span>
+          </div>
           <div v-if="!store.ammoList.length" class="empty-text">Loading...</div>
         </div>
       </div>
@@ -83,11 +85,13 @@ const handleSubmit = () => {
       <div class="form-group">
         <label>Weapon Mods</label>
         <div class="checkbox-grid">
-          <label v-for="m in store.modList" :key="m.id" class="checkbox-item">
-            <input type="checkbox" :value="m.id" v-model="selectedMods" />
-            <img v-if="m.icon" :src="m.icon" :alt="m.name" class="grid-icon" />
-            <span>{{ m.name }}</span>
-          </label>
+          <div v-for="m in store.modList" :key="m.id" class="checkbox-item">
+            <label class="checkbox-content">
+              <input type="checkbox" :value="m.id" v-model="selectedMods" />
+              <img v-if="m.icon" :src="m.icon" :alt="m.name" class="grid-icon" />
+            </label>
+            <span class="item-name">{{ m.name }}</span>
+          </div>
           <div v-if="!store.modList.length" class="empty-text">Loading...</div>
         </div>
       </div>
@@ -95,7 +99,7 @@ const handleSubmit = () => {
       <div class="form-group">
         <label>Ingredients</label>
         <div class="checkbox-grid">
-          <div v-for="ing in store.ingredientList" :key="ing.id" class="checkbox-item" :title="ing.name">
+          <div v-for="ing in store.ingredientList" :key="ing.id" class="checkbox-item" :data-title="ing.name">
             <label class="checkbox-content">
               <input
                 type="checkbox"
@@ -160,7 +164,6 @@ const handleSubmit = () => {
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
   font-size: 0.95rem;
   color: #94a3b8;
 }
@@ -211,10 +214,10 @@ textarea.form-input {
 }
 
 .checkbox-item {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 8px;
   padding: 6px 8px;
   background: #464646;
   border: 1px solid #5d5d5d;
@@ -227,6 +230,22 @@ textarea.form-input {
   background: #5a5a5a;
 }
 
+.checkbox-item[data-title]:hover::after {
+  content: attr(data-title);
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+
 .checkbox-content {
   display: flex;
   align-items: center;
@@ -234,7 +253,17 @@ textarea.form-input {
   cursor: pointer;
 }
 
+.item-name {
+  text-align: center;
+  flex: 1.5;
+  min-width: 0;
+}
+
 .checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #ce422b;
+  cursor: pointer;
   flex-shrink: 0;
 }
 
