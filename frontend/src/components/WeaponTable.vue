@@ -16,6 +16,10 @@ const goToDetails = (id: number) => {
   router.push(`/weapon/${id}`)
 }
 
+const goToCreate = () => {
+  router.push('/weapon/create')
+}
+
 // Главная магия: следим за изменением отфильтрованного списка
 watch(() => store.filteredWeapons, async () => {
   // Ждем, пока Vue обновит DOM (строки внутри таблицы изменятся)
@@ -66,6 +70,11 @@ onMounted(async () => {
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <div v-if="store.searchTerm && !store.filteredWeapons.length" class="no-results">
+    <span>No weapon found for "{{ store.searchTerm }}". </span>
+    <button class="create-btn" @click="goToCreate">Create</button>
   </div>
 </template>
 
@@ -119,6 +128,29 @@ th, td {
 }
 
 .view-btn:hover {
+  background-color: #a8321f;
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+  font-size: 1.1rem;
+}
+
+.create-btn {
+  background-color: #ce422b;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-left: 8px;
+  transition: background-color 0.2s;
+}
+
+.create-btn:hover {
   background-color: #a8321f;
 }
 </style>

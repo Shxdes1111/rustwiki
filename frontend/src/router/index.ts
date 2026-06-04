@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import WeaponTable from '../components/WeaponTable.vue'
 import WeaponDetails from '../components/WeaponDetails.vue'
+import WeaponCreate from '../components/WeaponCreate.vue'
 import AmmoDetails from '../components/AmmoDetails.vue'
 import ModDetails from '../components/ModDetails.vue'
 
@@ -17,6 +18,11 @@ const router = createRouter({
       name: 'weapon-details',
       component: WeaponDetails,
       props: true
+    },
+    {
+      path: '/weapon/create',
+      name: 'weapon-create',
+      component: WeaponCreate
     },
     {
       path: '/ammo/:id',
