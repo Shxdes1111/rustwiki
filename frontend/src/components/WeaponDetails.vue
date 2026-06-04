@@ -49,8 +49,8 @@ onMounted(async () => {
         <div class="infobox-header">{{ weapon.name }}</div>
         
         <div class="infobox-image-box">
-          <!-- Вместо заглушки тут будет динамическая картинка по имени: `/images/${weapon.shortname}.png` -->
-          <div class="placeholder-img">🎯</div>
+          <img v-if="weapon.icon" :src="weapon.icon" :alt="weapon.name" class="weapon-icon" />
+          <div v-else class="placeholder-img">🎯</div>
           <span class="infobox-subtitle">A professional rust item viewer.</span>
         </div>
 
@@ -218,6 +218,13 @@ onMounted(async () => {
 .placeholder-img {
   font-size: 4rem;
   margin-bottom: 10px;
+}
+
+.weapon-icon {
+  max-width: 200px;
+  max-height: 200px;
+  display: block;
+  margin: 0 auto 10px;
 }
 
 .infobox-subtitle {

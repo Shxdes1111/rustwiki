@@ -23,7 +23,7 @@ func NewWeaponRepository(db *sql.DB, log *logger.Logger) WeaponRepository {
 
 func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
 	r.log.Info("GetAllWeapons: делаю запрос в таблицу weapon_item")
-	rows, err := r.db.Query("SELECT id, name, type, description, shortname, COALESCE(capacity, 0), COALESCE(time_to_craft, 0) FROM weapon_item")
+	rows, err := r.db.Query("SELECT id, name, type, description, shortname, COALESCE(capacity, 0), COALESCE(time_to_craft, 0) FROM weapon_item ORDER BY id ASC")
 	if err != nil {
 		return nil, err
 	}
@@ -44,12 +44,12 @@ func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
 func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 	r.log.Info("GetWeaponByID: делаю запрос в таблицу weapon_item")
 	row := r.db.QueryRow(
-		"SELECT id, name, type, firemode, craftable, stacksize, description, shortname, COALESCE(capacity, 0), COALESCE(time_to_craft, 0), category_id FROM weapon_item WHERE id = $1",
+		"SELECT id, name, type, firemode, craftable, stacksize, description, shortname, icon, COALESCE(capacity, 0), COALESCE(time_to_craft, 0), category_id FROM weapon_item WHERE id = $1",
 		id,
 	)
 
 	var weapon models.WeaponItem
-	err := row.Scan(&weapon.ID, &weapon.Name, &weapon.Type, &weapon.Firemode, &weapon.Craftable, &weapon.Stacksize, &weapon.Description, &weapon.Shortname, &weapon.Capacity, &weapon.TimeToCraft, &weapon.CategoryID)
+	err := row.Scan(&weapon.ID, &weapon.Name, &weapon.Type, &weapon.Firemode, &weapon.Craftable, &weapon.Stacksize, &weapon.Description, &weapon.Shortname, &weapon.Icon, &weapon.Capacity, &weapon.TimeToCraft, &weapon.CategoryID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil

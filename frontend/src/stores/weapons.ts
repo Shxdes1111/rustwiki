@@ -34,6 +34,7 @@ export interface WeaponItem {
   type: string;
   description?: string;
   shortname?: string; 
+  icon?: string;
   stacksize: number;
   firemode: string;
   capacity?: number;  

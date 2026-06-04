@@ -33,7 +33,8 @@ onMounted(async () => {
         <div class="infobox-header">{{ ammo.name }}</div>
 
         <div class="infobox-image-box">
-          <div class="placeholder-img">📦</div>
+          <img v-if="ammo.icon" :src="ammo.icon" :alt="ammo.name" class="ammo-icon" />
+          <div v-else class="placeholder-img">📦</div>
           <span class="infobox-subtitle">Ammunition</span>
         </div>
 
@@ -129,6 +130,13 @@ onMounted(async () => {
 .placeholder-img {
   font-size: 4rem;
   margin-bottom: 10px;
+}
+
+.ammo-icon {
+  max-width: 200px;
+  max-height: 200px;
+  display: block;
+  margin: 0 auto 10px;
 }
 
 .infobox-subtitle {

@@ -33,7 +33,8 @@ onMounted(async () => {
         <div class="infobox-header">{{ mod.name }}</div>
 
         <div class="infobox-image-box">
-          <div class="placeholder-img">🔧</div>
+          <img v-if="mod.icon" :src="mod.icon" :alt="mod.name" class="mod-icon" />
+          <div v-else class="placeholder-img">🔧</div>
           <span class="infobox-subtitle">Weapon Mod</span>
         </div>
 
@@ -129,6 +130,13 @@ onMounted(async () => {
 .placeholder-img {
   font-size: 4rem;
   margin-bottom: 10px;
+}
+
+.mod-icon {
+  max-width: 200px;
+  max-height: 200px;
+  display: block;
+  margin: 0 auto 10px;
 }
 
 .infobox-subtitle {

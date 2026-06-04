@@ -9,6 +9,7 @@ type WeaponItem struct {
 	Stacksize  int           `json:"stacksize"`
 	Description string       `json:"description,omitempty"`
 	Shortname  string        `json:"shortname,omitempty"`
+	Icon       *string       `json:"icon,omitempty"`
 	Capacity   *int          `json:"capacity,omitempty"`
 	TimeToCraft *int         `json:"time_to_craft,omitempty"`
 	CategoryID *int          `json:"category_id,omitempty"`

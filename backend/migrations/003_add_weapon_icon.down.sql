@@ -1,0 +1,1 @@
+ALTER TABLE weapon_item DROP COLUMN IF EXISTS icon;
