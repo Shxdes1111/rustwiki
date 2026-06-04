@@ -75,7 +75,7 @@ onMounted(async () => {
             class="grid-item" 
             :title="ammo.name"
           >
-            <span class="item-icon">📦</span> 
+            <img v-if="ammo.icon" :src="ammo.icon" :alt="ammo.name" class="grid-icon" />
             <span class="grid-item-text">{{ ammo.name }}</span>
           </router-link>
         </div>
@@ -91,7 +91,7 @@ onMounted(async () => {
             class="grid-item" 
             :title="mod.name"
           >
-            <span class="item-icon">🔧</span> 
+            <img v-if="mod.icon" :src="mod.icon" :alt="mod.name" class="grid-icon" />
             <span class="grid-item-text">{{ mod.name }}</span>
           </router-link>
         </div>
@@ -106,7 +106,8 @@ onMounted(async () => {
         <div class="infobox-section-title">Ingredients</div>
         <div class="infobox-grid bg-darker">
           <div v-for="ing in weapon.ingredients" :key="ing.id" class="grid-item content-center">
-            💎 <span class="count">x{{ ing.amount || 1 }}</span>
+            <img v-if="ing.icon" :src="ing.icon" :alt="ing.name" class="grid-icon" />
+            <span class="count">x{{ ing.amount || 1 }}</span>
           </div>
         </div>
       </aside>
@@ -296,6 +297,13 @@ onMounted(async () => {
 
 .item-icon {
   flex-shrink: 0; /* Иконка эмодзи/картинки не сожмется */
+}
+
+.grid-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .grid-item-text {

@@ -40,7 +40,7 @@ func (r *ammoRepository) GetAmmoByID (id int) (*models.Ammo, error) {
     // 2. Находим всё оружие через связующую таблицу weapon_ammo (Честный JOIN)
     r.log.Info("GetAmmoByID: делаю запрос в таблицы weapon_item и weapon_ammo")
     weaponRows, err := r.db.Query(`
-        SELECT w.id, w.name, w.type, w.description, w.shortname, 
+        SELECT w.id, w.name, w.type, w.description, w.shortname, w.icon,
                COALESCE(w.capacity, 0), COALESCE(w.time_to_craft, 0)
         FROM weapon_item w
         JOIN weapon_ammo wa ON w.id = wa.weapon_item_id
@@ -57,7 +57,7 @@ func (r *ammoRepository) GetAmmoByID (id int) (*models.Ammo, error) {
         var weapon models.WeaponItem
         err := weaponRows.Scan(
             &weapon.ID, &weapon.Name, &weapon.Type, &weapon.Description,
-            &weapon.Shortname, &weapon.Capacity, &weapon.TimeToCraft,
+            &weapon.Shortname, &weapon.Icon, &weapon.Capacity, &weapon.TimeToCraft,
         )
         if err != nil {
             return nil, err

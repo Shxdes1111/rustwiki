@@ -41,7 +41,7 @@ func (r *modRepository) GetModByID(id int) (*models.Mods, error) {
 	// Используем честный JOIN через таблицу weapon_mods
 	r.log.Info("GetModByID: делаю запрос в таблицы weapon_item и weapon_mods")
 	weaponRows, err := r.db.Query(`
-		SELECT w.id, w.name, w.type, w.description, w.shortname, COALESCE(w.capacity, 0), COALESCE(w.time_to_craft, 0)
+		SELECT w.id, w.name, w.type, w.description, w.shortname, w.icon, COALESCE(w.capacity, 0), COALESCE(w.time_to_craft, 0)
 		FROM weapon_item w
 		JOIN weapon_mods wm ON w.id = wm.weapon_item_id
 		WHERE wm.mod_id = $1`,
@@ -62,6 +62,7 @@ func (r *modRepository) GetModByID(id int) (*models.Mods, error) {
 			&weapon.Type, 
 			&weapon.Description, 
 			&weapon.Shortname, 
+			&weapon.Icon, 
 			&weapon.Capacity, 
 			&weapon.TimeToCraft,
 		)

@@ -45,7 +45,8 @@ onMounted(async () => {
         <div class="infobox-section-title">Compatible Weapons</div>
         <div class="infobox-grid">
           <router-link v-for="weapon in mod.compatible_weapons" :key="weapon.id" :to="`/weapon/${weapon.id}`" class="grid-item" :title="weapon.name">
-            🔫 <span class="grid-item-text">{{ weapon.name }}</span>
+            <img v-if="weapon.icon" :src="weapon.icon" :alt="weapon.name" class="grid-icon" />
+            <span class="grid-item-text">{{ weapon.name }}</span>
           </router-link>
           <div v-if="!mod.compatible_weapons?.length" class="empty-text">No compatible weapons</div>
         </div>
@@ -169,10 +170,10 @@ onMounted(async () => {
 }
 
 .infobox-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+  gap: 6px;
+  padding: 10px;
   background-color: #2a2a2a;
 }
 
@@ -192,6 +193,19 @@ onMounted(async () => {
 
 .grid-item:hover {
   background: #5a5a5a;
+}
+
+.grid-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.grid-item-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .empty-text {
