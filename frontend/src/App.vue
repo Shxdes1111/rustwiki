@@ -8,6 +8,7 @@ onMounted(() => {
   store.fetchWeapons()
   store.fetchAllAmmo()
   store.fetchAllMods()
+  store.fetchAllIngredients()
 })
 </script>
 

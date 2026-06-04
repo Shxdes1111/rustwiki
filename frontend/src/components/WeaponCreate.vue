@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, computed } from 'vue'
 import { useWeaponStore } from '../stores/weapons'
 
 const router = useRouter()
@@ -14,10 +14,32 @@ const form = reactive({
 
 const selectedAmmo = ref<number[]>([])
 const selectedMods = ref<number[]>([])
+const selectedIngredients = ref<{ id: number; amount: number }[]>([])
+
+const isIngredientSelected = (id: number) => selectedIngredients.value.some(i => i.id === id)
+
+const getIngredientAmount = (id: number) => {
+  return selectedIngredients.value.find(i => i.id === id)?.amount ?? 1
+}
+
+const toggleIngredient = (id: number) => {
+  const idx = selectedIngredients.value.findIndex(i => i.id === id)
+  if (idx >= 0) {
+    selectedIngredients.value.splice(idx, 1)
+  } else {
+    selectedIngredients.value.push({ id, amount: 1 })
+  }
+}
+
+const setIngredientAmount = (id: number, amount: number) => {
+  const item = selectedIngredients.value.find(i => i.id === id)
+  if (item) item.amount = Math.max(1, amount)
+}
 
 onMounted(() => {
   if (!store.ammoList.length) store.fetchAllAmmo()
   if (!store.modList.length) store.fetchAllMods()
+  if (!store.ingredientList.length) store.fetchAllIngredients()
 })
 
 const handleSubmit = () => {
@@ -67,6 +89,31 @@ const handleSubmit = () => {
             <span>{{ m.name }}</span>
           </label>
           <div v-if="!store.modList.length" class="empty-text">Loading...</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Ingredients</label>
+        <div class="checkbox-grid">
+          <div v-for="ing in store.ingredientList" :key="ing.id" class="checkbox-item" :title="ing.name">
+            <label class="checkbox-content">
+              <input
+                type="checkbox"
+                :checked="isIngredientSelected(ing.id)"
+                @change="toggleIngredient(ing.id)"
+              />
+              <img v-if="ing.icon" :src="ing.icon" :alt="ing.name" class="grid-icon" />
+            </label>
+            <input
+              type="number"
+              min="1"
+              class="amount-input"
+              :value="getIngredientAmount(ing.id)"
+              @input="setIngredientAmount(ing.id, Number(($event.target as HTMLInputElement).value))"
+              :disabled="!isIngredientSelected(ing.id)"
+            />
+          </div>
+          <div v-if="!store.ingredientList.length" class="empty-text">Loading...</div>
         </div>
       </div>
 
@@ -166,13 +213,13 @@ textarea.form-input {
 .checkbox-item {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 6px 8px;
   background: #464646;
   border: 1px solid #5d5d5d;
   border-radius: 4px;
   font-size: 0.8rem;
-  cursor: pointer;
   transition: background-color 0.2s;
 }
 
@@ -180,8 +227,46 @@ textarea.form-input {
   background: #5a5a5a;
 }
 
+.checkbox-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
 .checkbox-item input[type="checkbox"] {
   flex-shrink: 0;
+}
+
+.amount-input {
+  width: 70px;
+  padding: 10px 8px;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 3px;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.amount-input::-webkit-outer-spin-button,
+.amount-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.amount-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.amount-input:disabled {
+  opacity: 0.3;
+}
+
+.amount-input:focus {
+  outline: none;
+  border-color: #ce422b;
 }
 
 .grid-icon {

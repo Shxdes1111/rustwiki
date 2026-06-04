@@ -36,10 +36,12 @@ func main() {
     weaponRepo := repository.NewWeaponRepository(db.DB, log)
     modRepo := repository.NewModRepository(db.DB, log)
 	ammoRepo := repository.NewAmmoRepository(db.DB, log)
+	ingredientRepo := repository.NewIngredientRepository(db.DB, log)
 
     weaponHandler := handlers.NewWeaponHandler(weaponRepo, log)
     modHandler := handlers.NewModHandler(modRepo, log)
 	ammoHandler := handlers.NewAmmoHandler(ammoRepo, log)
+	ingredientHandler := handlers.NewIngredientHandler(ingredientRepo, log)
 
     // 3. Register routes using the env methods
     http.HandleFunc("GET /api/weapons", weaponHandler.GetWeapons)
@@ -48,6 +50,7 @@ func main() {
     http.HandleFunc("GET /api/mods/{id}", modHandler.GetMod)
     http.HandleFunc("GET /api/ammo", ammoHandler.GetAmmoList)
     http.HandleFunc("GET /api/ammo/{id}", ammoHandler.GetAmmo)
+    http.HandleFunc("GET /api/ingredients", ingredientHandler.GetIngredientList)
     // 1. Create a channel to listen for OS signals
     stop := make(chan os.Signal, 1)
 
