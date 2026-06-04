@@ -31,9 +31,27 @@ const toggleIngredient = (id: number) => {
   }
 }
 
-const setIngredientAmount = (id: number, amount: number) => {
+const setIngredientAmount = (id: number, raw: string, el?: HTMLInputElement) => {
   const item = selectedIngredients.value.find(i => i.id === id)
-  if (item) item.amount = Math.max(1, amount)
+  if (!item) return
+  const cleaned = raw.replace(/\D/g, '').replace(/^0+/, '')
+  item.amount = parseInt(cleaned) || 1
+  if (el) el.value = cleaned
+}
+
+const preventNonDigit = (e: KeyboardEvent) => {
+  if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+    e.preventDefault()
+  }
+}
+
+const handleBlur = (id: number, raw: string, el?: HTMLInputElement) => {
+  const trimmed = raw.trim()
+  if (!trimmed || trimmed === '0') {
+    toggleIngredient(id)
+  } else {
+    setIngredientAmount(id, raw, el)
+  }
 }
 
 onMounted(() => {
@@ -74,9 +92,9 @@ const handleSubmit = () => {
           <div v-for="a in store.ammoList" :key="a.id" class="checkbox-item">
             <label class="checkbox-content">
               <input type="checkbox" :value="a.id" v-model="selectedAmmo" />
-              <img v-if="a.icon" :src="a.icon" :alt="a.name" class="grid-icon" />
             </label>
             <span class="item-name">{{ a.name }}</span>
+            <img v-if="a.icon" :src="a.icon" :alt="a.name" class="grid-icon" />
           </div>
           <div v-if="!store.ammoList.length" class="empty-text">Loading...</div>
         </div>
@@ -88,9 +106,9 @@ const handleSubmit = () => {
           <div v-for="m in store.modList" :key="m.id" class="checkbox-item">
             <label class="checkbox-content">
               <input type="checkbox" :value="m.id" v-model="selectedMods" />
-              <img v-if="m.icon" :src="m.icon" :alt="m.name" class="grid-icon" />
             </label>
             <span class="item-name">{{ m.name }}</span>
+            <img v-if="m.icon" :src="m.icon" :alt="m.name" class="grid-icon" />
           </div>
           <div v-if="!store.modList.length" class="empty-text">Loading...</div>
         </div>
@@ -106,16 +124,19 @@ const handleSubmit = () => {
                 :checked="isIngredientSelected(ing.id)"
                 @change="toggleIngredient(ing.id)"
               />
-              <img v-if="ing.icon" :src="ing.icon" :alt="ing.name" class="grid-icon" />
             </label>
             <input
-              type="number"
+              type="tel"
               min="1"
+              maxlength="5"
               class="amount-input"
               :value="getIngredientAmount(ing.id)"
-              @input="setIngredientAmount(ing.id, Number(($event.target as HTMLInputElement).value))"
+              @input="setIngredientAmount(ing.id, ($event.target as HTMLInputElement).value, $event.target as HTMLInputElement)"
+              @blur="handleBlur(ing.id, ($event.target as HTMLInputElement).value, $event.target as HTMLInputElement)"
+              @keydown="preventNonDigit"
               :disabled="!isIngredientSelected(ing.id)"
             />
+            <img v-if="ing.icon" :src="ing.icon" :alt="ing.name" class="grid-icon" />
           </div>
           <div v-if="!store.ingredientList.length" class="empty-text">Loading...</div>
         </div>
@@ -249,7 +270,9 @@ textarea.form-input {
 .checkbox-content {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
   cursor: pointer;
 }
 
@@ -262,6 +285,7 @@ textarea.form-input {
 .checkbox-item input[type="checkbox"] {
   width: 18px;
   height: 18px;
+  margin: 0;
   accent-color: #ce422b;
   cursor: pointer;
   flex-shrink: 0;
