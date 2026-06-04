@@ -21,7 +21,7 @@ onMounted(async () => {
 
 <template>
   <div v-if="mod" class="wiki-page">
-    <button class="back-btn" @click="router.push('/')">← Назад к списку</button>
+    <button class="back-btn" @click="router.push('/')">← Back to list</button>
 
     <div class="wiki-layout">
       <div class="main-content">

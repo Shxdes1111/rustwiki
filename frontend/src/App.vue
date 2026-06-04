@@ -4,7 +4,11 @@ import { useWeaponStore } from './stores/weapons'
 
 const store = useWeaponStore()
 
-onMounted(() => store.fetchWeapons())
+onMounted(() => {
+  store.fetchWeapons()
+  store.fetchAllAmmo()
+  store.fetchAllMods()
+})
 </script>
 
 <template>

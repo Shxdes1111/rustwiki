@@ -22,7 +22,7 @@ onMounted(async () => {
 <template>
   <div v-if="weapon" class="wiki-page">
     <!-- Кнопка Назад -->
-    <button class="back-btn" @click="router.push('/')">← Назад к списку</button>
+    <button class="back-btn" @click="router.push('/')">← Back to list</button>
 
     <div class="wiki-layout">
       <!-- ЛЕВАЯ КОЛОНКА: Описание и крафт -->

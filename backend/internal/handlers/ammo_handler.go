@@ -49,3 +49,17 @@ func (h *AmmoHandler) GetAmmo(w http.ResponseWriter, r *http.Request) {
 	// Отправляем JSON-ответ фронтенду
 	json.NewEncoder(w).Encode(ammo)
 }
+
+func (h *AmmoHandler) GetAmmoList(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+
+	ammoList, err := h.repo.GetAllAmmo()
+	if err != nil {
+		h.Logger.Errorf("Database error while fetching ammo list: %v", err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(ammoList)
+}

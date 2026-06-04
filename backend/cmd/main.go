@@ -44,7 +44,9 @@ func main() {
     // 3. Register routes using the env methods
     http.HandleFunc("GET /api/weapons", weaponHandler.GetWeapons)
     http.HandleFunc("GET /api/weapons/{id}", weaponHandler.GetWeapon)
+    http.HandleFunc("GET /api/mods", modHandler.GetModList)
     http.HandleFunc("GET /api/mods/{id}", modHandler.GetMod)
+    http.HandleFunc("GET /api/ammo", ammoHandler.GetAmmoList)
     http.HandleFunc("GET /api/ammo/{id}", ammoHandler.GetAmmo)
     // 1. Create a channel to listen for OS signals
     stop := make(chan os.Signal, 1)

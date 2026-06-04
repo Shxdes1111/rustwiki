@@ -9,6 +9,7 @@ import (
 
 type ModRepository interface {
 	GetModByID(id int) (*models.Mods, error)
+	GetAllMods() ([]models.Mods, error)
 }
 
 type modRepository struct {
@@ -73,4 +74,24 @@ func (r *modRepository) GetModByID(id int) (*models.Mods, error) {
 	}
 
 	return &mod, nil
+}
+
+func (r *modRepository) GetAllMods() ([]models.Mods, error) {
+	r.log.Info("GetAllMods: делаю запрос в таблицу mods")
+	rows, err := r.db.Query("SELECT id, name, icon FROM mods ORDER BY id")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var modList []models.Mods
+	for rows.Next() {
+		var m models.Mods
+		if err := rows.Scan(&m.ID, &m.Name, &m.Icon); err != nil {
+			return nil, err
+		}
+		modList = append(modList, m)
+	}
+
+	return modList, nil
 }

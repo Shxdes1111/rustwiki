@@ -52,6 +52,9 @@ export const useWeaponStore = defineStore('weapons', () => {
   const weapons = ref<WeaponItem[]>([])
   const searchTerm = ref('')
 
+  const ammoList = ref<Ammo[]>([])
+  const modList = ref<WeaponMod[]>([])
+
   const weaponCache = ref<Record<number, WeaponItem>>({})
   const weaponTimestamps = ref<Record<number, number>>({})
 
@@ -64,6 +67,16 @@ export const useWeaponStore = defineStore('weapons', () => {
   async function fetchWeapons() {
     const res = await fetch('http://localhost:8080/api/weapons')
     weapons.value = await res.json()
+  }
+
+  async function fetchAllAmmo() {
+    const res = await fetch('http://localhost:8080/api/ammo')
+    ammoList.value = await res.json()
+  }
+
+  async function fetchAllMods() {
+    const res = await fetch('http://localhost:8080/api/mods')
+    modList.value = await res.json()
   }
 
   async function fetchWeapon(id: number): Promise<WeaponItem> {
@@ -110,5 +123,5 @@ export const useWeaponStore = defineStore('weapons', () => {
     )
   })
 
-  return { weapons, searchTerm, filteredWeapons, fetchWeapons, fetchWeapon, fetchAmmo, fetchMod }
+  return { weapons, searchTerm, ammoList, modList, filteredWeapons, fetchWeapons, fetchAllAmmo, fetchAllMods, fetchWeapon, fetchAmmo, fetchMod }
 })
