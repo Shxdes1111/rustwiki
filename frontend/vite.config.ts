@@ -16,4 +16,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    proxy: {
+      '/uploads': process.env.UPLOAD_PROXY || 'http://localhost:8080',
+    },
+  },
 })

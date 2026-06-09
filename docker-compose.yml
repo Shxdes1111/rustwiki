@@ -24,6 +24,8 @@ services:
     container_name: rustwiki_backend
     ports:
       - "8080:8080"
+    volumes:
+      - ./backend/uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -43,6 +45,8 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    environment:
+      - UPLOAD_PROXY=http://backend:8080
 
   pgadmin:
     image: dpage/pgadmin4:latest

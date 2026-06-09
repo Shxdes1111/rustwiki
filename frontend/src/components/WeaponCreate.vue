@@ -16,9 +16,14 @@ const form = reactive({
   stacksize: 1,
   description: '',
   shortname: '',
+  icon: '',
   capacity: null as number | null,
   time_to_craft: null as number | null,
 })
+
+const iconFile = ref<File | null>(null)
+const iconPreview = ref('')
+const uploading = ref(false)
 
 const selectedAmmo = ref<number[]>([])
 const selectedMods = ref<number[]>([])
@@ -68,6 +73,29 @@ onMounted(() => {
   if (!store.ingredientList.length) store.fetchAllIngredients()
 })
 
+const handleFileSelect = async (e: Event) => {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  iconFile.value = file
+  iconPreview.value = URL.createObjectURL(file)
+
+  uploading.value = true
+  try {
+    const path = await store.uploadIcon(file)
+    form.icon = path
+    toast.success('Icon uploaded!')
+  } catch (err) {
+    toast.error(`Icon upload failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    iconFile.value = null
+    iconPreview.value = ''
+    form.icon = ''
+  } finally {
+    uploading.value = false
+  }
+}
+
 const handleSubmit = async () => {
   const payload = {
     name: form.name,
@@ -77,6 +105,7 @@ const handleSubmit = async () => {
     stacksize: form.stacksize,
     description: form.description,
     shortname: form.shortname,
+    icon: form.icon,
     capacity: form.capacity || null,
     time_to_craft: form.time_to_craft || null,
     category_id: 1,
@@ -160,6 +189,19 @@ const handleSubmit = async () => {
         <div class="form-group">
           <label for="time_to_craft">Time to Craft (seconds)</label>
           <input id="time_to_craft" v-model.number="form.time_to_craft" type="number" min="1" class="form-input" placeholder="e.g. 15" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="icon">Icon</label>
+        <div class="icon-upload-area">
+          <label class="file-input-label" :class="{ uploading }">
+            <input type="file" accept="image/avif,image/jpeg,image/png,image/webp" @change="handleFileSelect" class="file-input" :disabled="uploading" />
+            <span v-if="uploading">Uploading...</span>
+            <span v-else>Choose image</span>
+          </label>
+          <img v-if="iconPreview" :src="iconPreview" class="icon-preview" alt="Icon preview" />
+          <span v-else class="icon-placeholder">No icon selected</span>
         </div>
       </div>
 
@@ -427,5 +469,52 @@ textarea.form-input {
   font-size: 0.85rem;
   color: #64748b;
   padding: 4px;
+}
+
+.icon-upload-area {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background-color: #2a2a2a;
+  border-radius: 4px;
+}
+
+.file-input-label {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #ce422b;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.file-input-label:hover {
+  background-color: #a8321f;
+}
+
+.file-input-label.uploading {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.file-input {
+  display: none;
+}
+
+.icon-preview {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 4px;
+  border: 1px solid #444;
+}
+
+.icon-placeholder {
+  font-size: 0.85rem;
+  color: #64748b;
 }
 </style>

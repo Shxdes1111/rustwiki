@@ -1,0 +1,61 @@
+package handlers
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"time"
+)
+
+const uploadDir = "uploads/icons/weapons"
+const maxUploadSize = 5 << 20
+
+func (h *WeaponHandler) UploadIcon(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	if err := r.ParseMultipartForm(maxUploadSize); err != nil {
+		http.Error(w, `{"error":"File too large or invalid form"}`, http.StatusBadRequest)
+		return
+	}
+
+	file, header, err := r.FormFile("icon")
+	if err != nil {
+		http.Error(w, `{"error":"Missing icon file"}`, http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	ext := filepath.Ext(header.Filename)
+	if ext != ".avif" && ext != ".jpeg" && ext != ".jpg" && ext != ".png" && ext != ".webp" {
+		http.Error(w, `{"error":"Unsupported format. Use avif, jpeg, png, or webp"}`, http.StatusBadRequest)
+		return
+	}
+
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		h.Logger.Errorf("UploadIcon: mkdir: %v", err)
+		http.Error(w, `{"error":"Server error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	filename := fmt.Sprintf("%d_%s", time.Now().UnixNano(), header.Filename)
+	dst, err := os.Create(filepath.Join(uploadDir, filename))
+	if err != nil {
+		h.Logger.Errorf("UploadIcon: create file: %v", err)
+		http.Error(w, `{"error":"Server error"}`, http.StatusInternalServerError)
+		return
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
+		h.Logger.Errorf("UploadIcon: copy: %v", err)
+		http.Error(w, `{"error":"Server error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	iconPath := fmt.Sprintf("/%s/%s", uploadDir, filename)
+	json.NewEncoder(w).Encode(map[string]string{"icon": iconPath})
+}

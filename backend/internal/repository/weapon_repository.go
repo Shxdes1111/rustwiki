@@ -24,7 +24,7 @@ func NewWeaponRepository(db *sql.DB, log *logger.Logger) WeaponRepository {
 
 func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
 	r.log.Info("GetAllWeapons: делаю запрос в таблицу weapon_item")
-	rows, err := r.db.Query("SELECT id, name, type, description, shortname, COALESCE(capacity, 0), COALESCE(time_to_craft, 0) FROM weapon_item ORDER BY id ASC")
+	rows, err := r.db.Query("SELECT id, name, type, description, shortname, icon, COALESCE(capacity, 0), COALESCE(time_to_craft, 0) FROM weapon_item ORDER BY id ASC")
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
 	var weapons []models.WeaponItem
 	for rows.Next() {
 		var weapon models.WeaponItem
-		if err := rows.Scan(&weapon.ID, &weapon.Name, &weapon.Type, &weapon.Description, &weapon.Shortname, &weapon.Capacity, &weapon.TimeToCraft); err != nil {
+		if err := rows.Scan(&weapon.ID, &weapon.Name, &weapon.Type, &weapon.Description, &weapon.Shortname, &weapon.Icon, &weapon.Capacity, &weapon.TimeToCraft); err != nil {
 			return nil, err
 		}
 		weapons = append(weapons, weapon)
@@ -141,11 +141,11 @@ func (r *weaponRepository) CreateWeapon(req models.CreateWeaponRequest) (int, er
 
 	var newID int
 	err = tx.QueryRow(`
-		INSERT INTO weapon_item (name, type, firemode, craftable, stacksize, description, shortname, capacity, time_to_craft, category_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		INSERT INTO weapon_item (name, type, firemode, craftable, stacksize, description, shortname, icon, capacity, time_to_craft, category_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		RETURNING id`,
 		req.Name, req.Type, req.Firemode, req.Craftable, req.Stacksize,
-		req.Description, req.Shortname, req.Capacity, req.TimeToCraft, req.CategoryID,
+		req.Description, req.Shortname, req.Icon, req.Capacity, req.TimeToCraft, req.CategoryID,
 	).Scan(&newID)
 	if err != nil {
 		return 0, err

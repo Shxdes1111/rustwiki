@@ -129,6 +129,23 @@ export const useWeaponStore = defineStore('weapons', () => {
     )
   })
 
+  const API_BASE = 'http://localhost:8080'
+
+  async function uploadIcon(file: File): Promise<string> {
+    const formData = new FormData()
+    formData.append('icon', file)
+    const res = await fetch(`${API_BASE}/api/upload`, {
+      method: 'POST',
+      body: formData,
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || `HTTP ${res.status}`)
+    }
+    const result = await res.json()
+    return result.icon
+  }
+
   async function createWeapon(data: any): Promise<number> {
     const res = await fetch('http://localhost:8080/api/weapons', {
       method: 'POST',
@@ -143,5 +160,5 @@ export const useWeaponStore = defineStore('weapons', () => {
     return result.id
   }
 
-  return { weapons, searchTerm, ammoList, modList, ingredientList, filteredWeapons, fetchWeapons, fetchAllAmmo, fetchAllMods, fetchAllIngredients, fetchWeapon, fetchAmmo, fetchMod, createWeapon }
+  return { weapons, searchTerm, ammoList, modList, ingredientList, filteredWeapons, fetchWeapons, fetchAllAmmo, fetchAllMods, fetchAllIngredients, fetchWeapon, fetchAmmo, fetchMod, createWeapon, uploadIcon }
 })

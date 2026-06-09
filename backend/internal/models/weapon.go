@@ -41,6 +41,7 @@ type CreateWeaponRequest struct {
 	Stacksize   int                 `json:"stacksize"`
 	Description string              `json:"description"`
 	Shortname   string              `json:"shortname"`
+	Icon        string              `json:"icon"`
 	Capacity    *int                `json:"capacity"`
 	TimeToCraft *int                `json:"time_to_craft"`
 	CategoryID  *int                `json:"category_id"`
