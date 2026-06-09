@@ -445,8 +445,9 @@ textarea.form-input {
   margin: 0;
 }
 
-.amount-input[type="number"] {
-  -moz-appearance: textfield;
+.amount-input {
+  -moz-appearance: textfield; 
+  appearance: textfield;    
 }
 
 .amount-input:disabled {
