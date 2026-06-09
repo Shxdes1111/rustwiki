@@ -73,3 +73,19 @@ func (h *WeaponHandler) CreateWeapon(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(map[string]int{"id": id})
 }
+
+func (h *WeaponHandler) DeleteWeapon(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "Invalid weapon ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.weaponRepo.DeleteWeapon(id); err != nil {
+		h.Logger.Errorf("DeleteWeapon: %v", err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

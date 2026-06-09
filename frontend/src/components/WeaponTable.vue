@@ -20,6 +20,16 @@ const goToCreate = () => {
   router.push('/weapon/create')
 }
 
+const handleDelete = async (id: number) => {
+  if (!confirm('Delete this weapon?')) return
+  try {
+    await store.deleteWeapon(id)
+    await store.fetchWeapons()
+  } catch {
+    alert('Failed to delete weapon')
+  }
+}
+
 // Главная магия: следим за изменением отфильтрованного списка
 watch(() => store.filteredWeapons, async () => {
   // Ждем, пока Vue обновит DOM (строки внутри таблицы изменятся)
@@ -53,19 +63,20 @@ onMounted(async () => {
     <table ref="innerTable" class="wiki-table">
       <thead>
         <tr>
-          <th>ID</th>
+          <th>№</th>
           <th>Name</th>
           <th>Type</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in store.filteredWeapons" :key="item.id" class="table-row">
-          <td>{{ item.id }}</td>
+        <tr v-for="(item, index) in store.filteredWeapons" :key="item.id" class="table-row">
+          <td>{{ index + 1 }}</td>
           <td class="weapon-name">{{ item.name }}</td>
           <td><span class="badge">{{ item.type }}</span></td>
-          <td>
+          <td class="actions-cell">
             <button class="view-btn" @click="goToDetails(item.id)">View Details</button>
+            <button class="delete-btn" @click="handleDelete(item.id)">×</button>
           </td>
         </tr>
       </tbody>
@@ -99,6 +110,7 @@ th, td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #333;
+  
 }
 
 .table-row {
@@ -108,6 +120,12 @@ th, td {
 
 .table-row:hover {
   background-color: #262626;
+}
+
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .badge {
@@ -129,6 +147,22 @@ th, td {
 
 .view-btn:hover {
   background-color: #a8321f;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-left: 6px;
+  transition: color 0.2s;
+  line-height: 1;
+}
+
+.delete-btn:hover {
+  color: #dc2626;
 }
 
 .no-results {

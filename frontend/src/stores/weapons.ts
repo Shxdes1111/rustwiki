@@ -160,5 +160,12 @@ export const useWeaponStore = defineStore('weapons', () => {
     return result.id
   }
 
-  return { weapons, searchTerm, ammoList, modList, ingredientList, filteredWeapons, fetchWeapons, fetchAllAmmo, fetchAllMods, fetchAllIngredients, fetchWeapon, fetchAmmo, fetchMod, createWeapon, uploadIcon }
+  async function deleteWeapon(id: number): Promise<void> {
+    const res = await fetch(`http://localhost:8080/api/weapons/${id}`, {
+      method: 'DELETE',
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  }
+
+  return { weapons, searchTerm, ammoList, modList, ingredientList, filteredWeapons, fetchWeapons, fetchAllAmmo, fetchAllMods, fetchAllIngredients, fetchWeapon, fetchAmmo, fetchMod, createWeapon, uploadIcon, deleteWeapon }
 })

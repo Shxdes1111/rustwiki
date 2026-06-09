@@ -2,6 +2,9 @@ package repository
 
 import (
 	"database/sql"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"backend/internal/logger"
 	"backend/internal/models"
@@ -11,6 +14,7 @@ type WeaponRepository interface {
 	GetAllWeapons() ([]models.WeaponItem, error)
 	GetWeaponByID(id int) (*models.WeaponItem, error)
 	CreateWeapon(req models.CreateWeaponRequest) (int, error)
+	DeleteWeapon(id int) error
 }
 
 type weaponRepository struct {
@@ -175,4 +179,33 @@ func (r *weaponRepository) CreateWeapon(req models.CreateWeaponRequest) (int, er
 
 	r.log.Infof("CreateWeapon: оружие создано с id=%d", newID)
 	return newID, nil
+}
+
+func (r *weaponRepository) DeleteWeapon(id int) error {
+	r.log.Infof("DeleteWeapon: удаляю оружие id=%d", id)
+
+	var icon *string
+	err := r.db.QueryRow("SELECT icon FROM weapon_item WHERE id = $1", id).Scan(&icon)
+	if err != nil {
+		return err
+	}
+
+	if icon != nil {
+		cleanPath := *icon
+		if strings.HasPrefix(cleanPath, "http://localhost:8080/uploads/") {
+			cleanPath = strings.TrimPrefix(cleanPath, "http://localhost:8080")
+		}
+		if strings.HasPrefix(cleanPath, "/uploads/") {
+			relPath := strings.TrimPrefix(cleanPath, "/uploads/")
+			absPath := filepath.Join("uploads", relPath)
+			if err := os.Remove(absPath); err != nil && !os.IsNotExist(err) {
+				r.log.Warnf("DeleteWeapon: не удалось удалить файл %s: %v", absPath, err)
+			} else {
+				r.log.Infof("DeleteWeapon: удалён файл %s", absPath)
+			}
+		}
+	}
+
+	_, err = r.db.Exec("DELETE FROM weapon_item WHERE id = $1", id)
+	return err
 }

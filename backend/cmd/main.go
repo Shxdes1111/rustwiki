@@ -53,6 +53,7 @@ func main() {
     http.HandleFunc("GET /api/ingredients", ingredientHandler.GetIngredientList)
     http.HandleFunc("POST /api/weapons", weaponHandler.CreateWeapon)
     http.HandleFunc("POST /api/upload", weaponHandler.UploadIcon)
+    http.HandleFunc("DELETE /api/weapons/{id}", weaponHandler.DeleteWeapon)
     http.Handle("GET /uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
     // 1. Create a channel to listen for OS signals
     stop := make(chan os.Signal, 1)
