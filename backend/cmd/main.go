@@ -51,13 +51,14 @@ func main() {
     http.HandleFunc("GET /api/ammo", ammoHandler.GetAmmoList)
     http.HandleFunc("GET /api/ammo/{id}", ammoHandler.GetAmmo)
     http.HandleFunc("GET /api/ingredients", ingredientHandler.GetIngredientList)
+    http.HandleFunc("POST /api/weapons", weaponHandler.CreateWeapon)
     // 1. Create a channel to listen for OS signals
     stop := make(chan os.Signal, 1)
 
     // 2. Relay Ctrl+C (SIGINT) and termination (SIGTERM) to our channel
     signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
-    server := &http.Server{Addr: ":8080"}
+    server := &http.Server{Addr: ":8080", Handler: handlers.CORSMiddleware(http.DefaultServeMux)}
 
     // 3. Run the server in a goroutine so it doesn't block the main thread
     go func() {

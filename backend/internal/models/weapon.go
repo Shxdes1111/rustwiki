@@ -32,3 +32,24 @@ type Mods struct {
 	WeaponItemID      *int         `json:"weapon_item_id,omitempty"`
 	CompatibleWeapons []WeaponItem `json:"compatible_weapons,omitempty"` // <-- ДОБАВИТЬ ЭТО
 }
+
+type CreateWeaponRequest struct {
+	Name        string              `json:"name"`
+	Type        string              `json:"type"`
+	Firemode    string              `json:"firemode"`
+	Craftable   bool                `json:"craftable"`
+	Stacksize   int                 `json:"stacksize"`
+	Description string              `json:"description"`
+	Shortname   string              `json:"shortname"`
+	Capacity    *int                `json:"capacity"`
+	TimeToCraft *int                `json:"time_to_craft"`
+	CategoryID  *int                `json:"category_id"`
+	AmmoIDs     []int               `json:"ammo_ids"`
+	ModIDs      []int               `json:"mod_ids"`
+	Ingredients []IngredientRequest `json:"ingredients"`
+}
+
+type IngredientRequest struct {
+	ID     int `json:"id"`
+	Amount int `json:"amount"`
+}

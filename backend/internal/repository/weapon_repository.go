@@ -10,6 +10,7 @@ import (
 type WeaponRepository interface {
 	GetAllWeapons() ([]models.WeaponItem, error)
 	GetWeaponByID(id int) (*models.WeaponItem, error)
+	CreateWeapon(req models.CreateWeaponRequest) (int, error)
 }
 
 type weaponRepository struct {
@@ -127,4 +128,51 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 	}
 
 	return &weapon, nil
+}
+
+func (r *weaponRepository) CreateWeapon(req models.CreateWeaponRequest) (int, error) {
+	r.log.Info("CreateWeapon: начинаю транзакцию создания оружия")
+
+	tx, err := r.db.Begin()
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+
+	var newID int
+	err = tx.QueryRow(`
+		INSERT INTO weapon_item (name, type, firemode, craftable, stacksize, description, shortname, capacity, time_to_craft, category_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		RETURNING id`,
+		req.Name, req.Type, req.Firemode, req.Craftable, req.Stacksize,
+		req.Description, req.Shortname, req.Capacity, req.TimeToCraft, req.CategoryID,
+	).Scan(&newID)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, ammoID := range req.AmmoIDs {
+		if _, err := tx.Exec(`INSERT INTO weapon_ammo (weapon_item_id, ammo_id) VALUES ($1, $2)`, newID, ammoID); err != nil {
+			return 0, err
+		}
+	}
+
+	for _, modID := range req.ModIDs {
+		if _, err := tx.Exec(`INSERT INTO weapon_mods (weapon_item_id, mod_id) VALUES ($1, $2)`, newID, modID); err != nil {
+			return 0, err
+		}
+	}
+
+	for _, ing := range req.Ingredients {
+		if _, err := tx.Exec(`INSERT INTO weapon_ingredients (weapon_item_id, ingredients_id, amount) VALUES ($1, $2, $3)`, newID, ing.ID, ing.Amount); err != nil {
+			return 0, err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+
+	r.log.Infof("CreateWeapon: оружие создано с id=%d", newID)
+	return newID, nil
 }

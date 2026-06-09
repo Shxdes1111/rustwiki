@@ -18,7 +18,6 @@ func NewModHandler(repo repository.ModRepository, log *logger.Logger) *ModHandle
 }
 
 func (h *ModHandler) GetMod(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 
 	id, err := strconv.Atoi(r.PathValue("id"))
@@ -42,7 +41,6 @@ func (h *ModHandler) GetMod(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ModHandler) GetModList(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 
 	modList, err := h.repo.GetAllMods()

@@ -129,5 +129,19 @@ export const useWeaponStore = defineStore('weapons', () => {
     )
   })
 
-  return { weapons, searchTerm, ammoList, modList, ingredientList, filteredWeapons, fetchWeapons, fetchAllAmmo, fetchAllMods, fetchAllIngredients, fetchWeapon, fetchAmmo, fetchMod }
+  async function createWeapon(data: any): Promise<number> {
+    const res = await fetch('http://localhost:8080/api/weapons', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || `HTTP ${res.status}`)
+    }
+    const result = await res.json()
+    return result.id
+  }
+
+  return { weapons, searchTerm, ammoList, modList, ingredientList, filteredWeapons, fetchWeapons, fetchAllAmmo, fetchAllMods, fetchAllIngredients, fetchWeapon, fetchAmmo, fetchMod, createWeapon }
 })

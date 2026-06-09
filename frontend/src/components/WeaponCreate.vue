@@ -1,15 +1,23 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { reactive, ref, onMounted, computed } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useWeaponStore } from '../stores/weapons'
+import { useToast } from 'vue-toastification'
 
 const router = useRouter()
 const store = useWeaponStore()
+const toast = useToast()
 
 const form = reactive({
   name: '',
+  type: 'range',
+  firemode: 'semi',
+  craftable: true,
+  stacksize: 1,
   description: '',
-  shortname: ''
+  shortname: '',
+  capacity: null as number | null,
+  time_to_craft: null as number | null,
 })
 
 const selectedAmmo = ref<number[]>([])
@@ -60,8 +68,31 @@ onMounted(() => {
   if (!store.ingredientList.length) store.fetchAllIngredients()
 })
 
-const handleSubmit = () => {
-  // TODO: POST /api/weapons
+const handleSubmit = async () => {
+  const payload = {
+    name: form.name,
+    type: form.type,
+    firemode: form.firemode,
+    craftable: form.craftable,
+    stacksize: form.stacksize,
+    description: form.description,
+    shortname: form.shortname,
+    capacity: form.capacity || null,
+    time_to_craft: form.time_to_craft || null,
+    category_id: 1,
+    ammo_ids: selectedAmmo.value,
+    mod_ids: selectedMods.value,
+    ingredients: selectedIngredients.value,
+  }
+
+  try {
+    const id = await store.createWeapon(payload)
+    toast.success('Weapon created successfully!')
+    await store.fetchWeapons()
+    router.push(`/weapon/${id}`)
+  } catch (err) {
+    toast.error(`Failed to create weapon: ${err instanceof Error ? err.message : 'Unknown error'}`)
+  }
 }
 </script>
 
@@ -84,6 +115,52 @@ const handleSubmit = () => {
       <div class="form-group">
         <label for="shortname">Shortname</label>
         <input id="shortname" v-model="form.shortname" type="text" class="form-input" required />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="type">Type</label>
+          <select id="type" v-model="form.type" class="form-input">
+            <option value="range">Range</option>
+            <option value="melee">Melee</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="firemode">Firemode</label>
+          <select id="firemode" v-model="form.firemode" class="form-input">
+            <option value="semi">Semi</option>
+            <option value="automatic">Automatic</option>
+            <option value="double">Double</option>
+            <option value="none">None</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="craftable">
+            <input id="craftable" type="checkbox" v-model="form.craftable" class="inline-checkbox" />
+            Craftable
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label for="stacksize">Stacksize</label>
+          <input id="stacksize" v-model.number="form.stacksize" type="number" min="1" class="form-input" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="capacity">Capacity</label>
+          <input id="capacity" v-model.number="form.capacity" type="number" min="1" class="form-input" placeholder="e.g. 30" />
+        </div>
+
+        <div class="form-group">
+          <label for="time_to_craft">Time to Craft (seconds)</label>
+          <input id="time_to_craft" v-model.number="form.time_to_craft" type="number" min="1" class="form-input" placeholder="e.g. 15" />
+        </div>
       </div>
 
       <div class="form-group">
@@ -177,6 +254,23 @@ const handleSubmit = () => {
 
 .create-form {
   max-width: 500px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.inline-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #ce422b;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 .form-group {

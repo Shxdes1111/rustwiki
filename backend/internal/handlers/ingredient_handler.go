@@ -18,7 +18,6 @@ func NewIngredientHandler(repo repository.IngredientRepository, log *logger.Logg
 }
 
 func (h *IngredientHandler) GetIngredientList(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 
 	ingredients, err := h.repo.GetAllIngredients()

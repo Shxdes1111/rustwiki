@@ -21,8 +21,6 @@ func NewAmmoHandler(repo repository.AmmoRepository, log *logger.Logger) *AmmoHan
 
 // GetAmmo обрабатывает запрос GET /api/ammo/{id}
 func (h *AmmoHandler) GetAmmo(w http.ResponseWriter, r *http.Request) {
-	// Добавляем CORS и заголовки типа контента
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 
 	// Извлекаем id из пути URL
@@ -51,7 +49,6 @@ func (h *AmmoHandler) GetAmmo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AmmoHandler) GetAmmoList(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 
 	ammoList, err := h.repo.GetAllAmmo()
