@@ -25,7 +25,6 @@ const form = reactive({
 
 const iconFile = ref<File | null>(null)
 const iconPreview = ref('')
-const uploading = ref(false)
 
 const selectedAmmo = ref<number[]>([])
 const selectedMods = ref<number[]>([])
@@ -75,31 +74,37 @@ onMounted(() => {
   if (!store.ingredientList.length) store.fetchAllIngredients()
 })
 
-const handleFileSelect = async (e: Event) => {
+const handleFileSelect = (e: Event) => {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
 
   iconFile.value = file
   iconPreview.value = URL.createObjectURL(file)
+}
 
-  uploading.value = true
-  try {
-    const path = await store.uploadIcon(file)
-    form.icon = path
-    toast.success('Icon uploaded!')
-  } catch (err) {
-    toast.error(`Icon upload failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
-    iconFile.value = null
-    iconPreview.value = ''
-    form.icon = ''
-  } finally {
-    uploading.value = false
-  }
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
 }
 
 const handleSubmit = async () => {
-  const payload = {
+  let icon = ''
+  let iconBase64 = ''
+
+  if (iconFile.value) {
+    if (authStore.isAdmin) {
+      icon = await store.uploadIcon(iconFile.value)
+    } else {
+      iconBase64 = await fileToBase64(iconFile.value)
+    }
+  }
+
+  const payload: any = {
     name: form.name,
     type: form.type,
     firemode: form.firemode,
@@ -107,7 +112,8 @@ const handleSubmit = async () => {
     stacksize: form.stacksize,
     description: form.description,
     shortname: form.shortname,
-    icon: form.icon,
+    icon,
+    icon_base64: iconBase64,
     capacity: form.capacity || null,
     time_to_craft: form.time_to_craft || null,
     category_id: 1,
@@ -203,10 +209,9 @@ const handleSubmit = async () => {
       <div class="form-group">
         <label for="icon">Icon</label>
         <div class="icon-upload-area">
-          <label class="file-input-label" :class="{ uploading }">
-            <input type="file" accept="image/avif,image/jpeg,image/png,image/webp" @change="handleFileSelect" class="file-input" :disabled="uploading" />
-            <span v-if="uploading">Uploading...</span>
-            <span v-else>Choose image</span>
+          <label class="file-input-label">
+            <input type="file" accept="image/avif,image/jpeg,image/png,image/webp" @change="handleFileSelect" class="file-input" />
+            <span>Choose image</span>
           </label>
           <img v-if="iconPreview" :src="iconPreview" class="icon-preview" alt="Icon preview" />
           <span v-else class="icon-placeholder">No icon selected</span>
@@ -507,11 +512,6 @@ textarea.form-input {
 
 .file-input-label:hover {
   background-color: #a8321f;
-}
-
-.file-input-label.uploading {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .file-input {

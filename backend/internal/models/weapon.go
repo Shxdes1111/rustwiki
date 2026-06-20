@@ -42,6 +42,7 @@ type CreateWeaponRequest struct {
 	Description string              `json:"description"`
 	Shortname   string              `json:"shortname"`
 	Icon        string              `json:"icon"`
+	IconBase64  string              `json:"icon_base64"`
 	Capacity    *int                `json:"capacity"`
 	TimeToCraft *int                `json:"time_to_craft"`
 	CategoryID  *int                `json:"category_id"`

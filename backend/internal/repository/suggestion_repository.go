@@ -14,6 +14,7 @@ type SuggestionRepository interface {
 	FindAll() ([]models.WeaponSuggestion, error)
 	FindByID(id int) (*models.WeaponSuggestion, error)
 	UpdateStatus(id, reviewedBy int, status string) error
+	RemoveIconBase64(id int) error
 }
 
 type suggestionRepository struct {
@@ -83,6 +84,14 @@ func (r *suggestionRepository) UpdateStatus(id, reviewedBy int, status string) e
 	_, err := r.db.Exec(
 		`UPDATE weapon_suggestions SET status = $1, reviewed_at = $2, reviewed_by = $3 WHERE id = $4`,
 		status, now, reviewedBy, id,
+	)
+	return err
+}
+
+func (r *suggestionRepository) RemoveIconBase64(id int) error {
+	_, err := r.db.Exec(
+		`UPDATE weapon_suggestions SET payload = payload - 'icon_base64' WHERE id = $1`,
+		id,
 	)
 	return err
 }

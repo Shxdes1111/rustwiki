@@ -127,9 +127,9 @@ const handleReject = async () => {
           </ul>
         </div>
 
-        <div v-if="p.icon" class="detail-card">
+        <div v-if="p.icon || p.icon_base64" class="detail-card">
           <h3>Icon</h3>
-          <img :src="p.icon" alt="Weapon icon" class="icon-preview" />
+          <img :src="p.icon || p.icon_base64" alt="Weapon icon" class="icon-preview" />
         </div>
       </div>
 
