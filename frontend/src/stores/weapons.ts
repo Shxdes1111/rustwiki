@@ -29,6 +29,17 @@ export interface ModDetail extends WeaponMod {
   compatible_weapons: WeaponItem[]
 }
 
+export interface Suggestion {
+  id: number
+  user_id: number
+  username?: string
+  payload: any
+  status: string
+  created_at: string
+  reviewed_at?: string
+  reviewed_by?: number
+}
+
 export interface WeaponItem {
   id: number;
   name: string;
@@ -183,5 +194,66 @@ export const useWeaponStore = defineStore('weapons', () => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
   }
 
-  return { weapons, searchTerm, ammoList, modList, ingredientList, filteredWeapons, fetchWeapons, fetchAllAmmo, fetchAllMods, fetchAllIngredients, fetchWeapon, fetchAmmo, fetchMod, createWeapon, uploadIcon, deleteWeapon }
+  const suggestionCache = ref<Suggestion[]>([])
+
+  async function createSuggestion(data: any): Promise<Suggestion> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+    }
+    const res = await fetch('http://localhost:8080/api/suggestions', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || `HTTP ${res.status}`)
+    }
+    return await res.json()
+  }
+
+  async function fetchSuggestions(): Promise<Suggestion[]> {
+    const res = await fetch('http://localhost:8080/api/suggestions', {
+      headers: authHeaders(),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const data = await res.json()
+    suggestionCache.value = data
+    return data
+  }
+
+  async function fetchSuggestion(id: number): Promise<Suggestion> {
+    const res = await fetch(`http://localhost:8080/api/suggestions/${id}`, {
+      headers: authHeaders(),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  }
+
+  async function approveSuggestion(id: number) {
+    const res = await fetch(`http://localhost:8080/api/suggestions/${id}/approve`, {
+      method: 'PUT',
+      headers: authHeaders(),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || `HTTP ${res.status}`)
+    }
+    return await res.json()
+  }
+
+  async function rejectSuggestion(id: number) {
+    const res = await fetch(`http://localhost:8080/api/suggestions/${id}/reject`, {
+      method: 'PUT',
+      headers: authHeaders(),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || `HTTP ${res.status}`)
+    }
+    return await res.json()
+  }
+
+  return { weapons, searchTerm, ammoList, modList, ingredientList, filteredWeapons, fetchWeapons, fetchAllAmmo, fetchAllMods, fetchAllIngredients, fetchWeapon, fetchAmmo, fetchMod, createWeapon, uploadIcon, deleteWeapon, suggestionCache, createSuggestion, fetchSuggestions, fetchSuggestion, approveSuggestion, rejectSuggestion }
 })

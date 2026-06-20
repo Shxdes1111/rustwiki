@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, provide } from 'vue'
+import { useRouter } from 'vue-router'
 import { useWeaponStore } from './stores/weapons'
 import { useAuthStore } from './stores/auth'
 import AuthForm from './components/AuthForm.vue'
 
 const store = useWeaponStore()
 const authStore = useAuthStore()
+const router = useRouter()
 
 const showAuth = ref(false)
 const dropdownOpen = ref(false)
@@ -48,6 +50,9 @@ onUnmounted(() => {
     <div class="header">
       <h1>RustWiki Weapons</h1>
       <div class="header-right">
+        <button v-if="authStore.isAdmin" class="admin-btn" @click="router.push('/admin/suggestions')">
+          Pending
+        </button>
         <template v-if="authStore.isAuthenticated">
           <div ref="dropdownRef" class="user-menu">
             <button class="user-avatar" @click="toggleDropdown">
@@ -116,6 +121,24 @@ onUnmounted(() => {
 
 .login-btn:hover {
   background: #a8321f;
+}
+
+.admin-btn {
+  height: 35px;
+  padding: 0 16px;
+  margin: 0 8px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+  vertical-align: middle;
+}
+
+.admin-btn:hover {
+  background: #1d4ed8;
 }
 
 .user-menu {

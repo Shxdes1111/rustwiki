@@ -2,10 +2,12 @@
 import { useRouter } from 'vue-router'
 import { reactive, ref, onMounted } from 'vue'
 import { useWeaponStore } from '../stores/weapons'
+import { useAuthStore } from '../stores/auth'
 import { useToast } from 'vue-toastification'
 
 const router = useRouter()
 const store = useWeaponStore()
+const authStore = useAuthStore()
 const toast = useToast()
 
 const form = reactive({
@@ -115,10 +117,16 @@ const handleSubmit = async () => {
   }
 
   try {
-    const id = await store.createWeapon(payload)
-    toast.success('Weapon created successfully!')
-    await store.fetchWeapons()
-    router.push(`/weapon/${id}`)
+    if (authStore.isAdmin) {
+      const id = await store.createWeapon(payload)
+      toast.success('Weapon created successfully!')
+      await store.fetchWeapons()
+      router.push(`/weapon/${id}`)
+    } else {
+      await store.createSuggestion(payload)
+      toast.success('Suggestion submitted for review!')
+      router.push('/')
+    }
   } catch (err) {
     toast.error(`Failed to create weapon: ${err instanceof Error ? err.message : 'Unknown error'}`)
   }
