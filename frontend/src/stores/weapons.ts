@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import { useAuthStore } from './auth'
 
 export interface Ingredient {
   id: number;
@@ -131,11 +132,21 @@ export const useWeaponStore = defineStore('weapons', () => {
 
   const API_BASE = 'http://localhost:8080'
 
+  function authHeaders(): Record<string, string> {
+    const auth = useAuthStore()
+    if (auth.token) {
+      return { Authorization: `Bearer ${auth.token}` }
+    }
+    return {}
+  }
+
   async function uploadIcon(file: File): Promise<string> {
     const formData = new FormData()
     formData.append('icon', file)
+    const headers = authHeaders()
     const res = await fetch(`${API_BASE}/api/upload`, {
       method: 'POST',
+      headers,
       body: formData,
     })
     if (!res.ok) {
@@ -147,9 +158,13 @@ export const useWeaponStore = defineStore('weapons', () => {
   }
 
   async function createWeapon(data: any): Promise<number> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+    }
     const res = await fetch('http://localhost:8080/api/weapons', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(data),
     })
     if (!res.ok) {
@@ -163,6 +178,7 @@ export const useWeaponStore = defineStore('weapons', () => {
   async function deleteWeapon(id: number): Promise<void> {
     const res = await fetch(`http://localhost:8080/api/weapons/${id}`, {
       method: 'DELETE',
+      headers: authHeaders(),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
   }

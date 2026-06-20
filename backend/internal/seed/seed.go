@@ -45,6 +45,14 @@ func Seed(db *sql.DB, log *logger.Logger) error {
 		return fmt.Errorf("admin user: %w", err)
 	}
 
+	admin1Hash, err := bcrypt.GenerateFromPassword([]byte("admin1"), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("admin1 password hash: %w", err)
+	}
+	if _, err := db.Exec(`INSERT INTO users (username, password_hash, role) VALUES ('admin1', $1, 'admin') ON CONFLICT (username) DO UPDATE SET password_hash = $1, role = 'admin'`, string(admin1Hash)); err != nil {
+		return fmt.Errorf("admin1 user: %w", err)
+	}
+
 	if _, err := db.Exec(`INSERT INTO category (id, name) VALUES (1, 'weapons'), (2, 'armor') ON CONFLICT (id) DO NOTHING`); err != nil {
 		return fmt.Errorf("category: %w", err)
 	}

@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted } from 'vue'
+import { ref, watch, nextTick, onMounted, inject } from 'vue'
 import { useWeaponStore } from '../stores/weapons'
+import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import SearchBar from './SearchBar.vue'
 
 const store = useWeaponStore()
+const authStore = useAuthStore()
 const router = useRouter()
+
+const openAuth = inject<() => void>('openAuth', () => {})
 
 // Ссылки на элементы для замера высоты
 const tableWrapper = ref<HTMLElement | null>(null)
@@ -32,14 +36,10 @@ const handleDelete = async (id: number) => {
 
 // Главная магия: следим за изменением отфильтрованного списка
 watch(() => store.filteredWeapons, async () => {
-  // Ждем, пока Vue обновит DOM (строки внутри таблицы изменятся)
   await nextTick()
   
   if (tableWrapper.value && innerTable.value) {
-    // 1. Измеряем, сколько высоты ТЕПЕРЬ нужно таблице с новыми строками
     const newHeight = innerTable.value.offsetHeight
-    
-    // 2. Плавно задаем эту высоту внешнему контейнеру-жалюзи
     tableWrapper.value.style.height = `${newHeight}px`
   }
 }, { deep: true })
@@ -56,10 +56,7 @@ onMounted(async () => {
 <template>
   <SearchBar />
   
-  <!-- Внешний контейнер-"жалюзи", который будет плавно менять высоту -->
   <div ref="tableWrapper" class="table-blind-container">
-    
-    <!-- Сама таблица (внутренний контент для замера высоты) -->
     <table ref="innerTable" class="wiki-table">
       <thead>
         <tr>
@@ -76,7 +73,7 @@ onMounted(async () => {
           <td><span class="badge">{{ item.type }}</span></td>
           <td class="actions-cell">
             <button class="view-btn" @click="goToDetails(item.id)">View Details</button>
-            <button class="delete-btn" @click="handleDelete(item.id)">×</button>
+            <button v-if="authStore.isAdmin" class="delete-btn" @click="handleDelete(item.id)">×</button>
           </td>
         </tr>
       </tbody>
@@ -84,18 +81,20 @@ onMounted(async () => {
   </div>
 
   <div v-if="store.searchTerm && !store.filteredWeapons.length" class="no-results">
-    <span>No weapon found for "{{ store.searchTerm }}". </span>
-    <button class="create-btn" @click="goToCreate">Create</button>
+    <template v-if="authStore.isAuthenticated">
+      <span>No weapon found for "{{ store.searchTerm }}". </span>
+      <button class="create-btn" @click="goToCreate">Create</button>
+    </template>
+    <span v-else>
+      To create a new weapon, please <a class="auth-link" @click="openAuth()">log in</a>
+    </span>
   </div>
 </template>
 
 <style scoped>
-/* --- НАСТРОЙКА ЭФФЕКТА ЖАЛЮЗИ --- */
 .table-blind-container {
   width: 100%;
-  overflow: hidden; /* Прячет нижнюю часть таблицы, которая "не влезает" */
-  
-  /* Плавное изменение высоты (скорость сжатия/расширения) */
+  overflow: hidden;
   transition: height 0.8s cubic-bezier(0.25, 1, 0.5, 1); 
 }
 
@@ -110,11 +109,9 @@ th, td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #333;
-  
 }
 
 .table-row {
-  /* Плавное исчезновение/появление контента внутри строк, чтобы не было мерцания */
   transition: opacity 1s ease;
 }
 
@@ -186,5 +183,15 @@ th, td {
 
 .create-btn:hover {
   background-color: #a8321f;
+}
+
+.auth-link {
+  color: #ce422b;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.auth-link:hover {
+  color: #ef4444;
 }
 </style>

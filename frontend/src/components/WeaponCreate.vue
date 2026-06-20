@@ -295,7 +295,11 @@ const handleSubmit = async () => {
 }
 
 .create-form {
+  display: flex;
+  flex-direction: column;
+
   max-width: 500px;
+  
 }
 
 .form-row {
