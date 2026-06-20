@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"backend/internal/logger"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type weaponSeed struct {
@@ -34,6 +36,14 @@ func ptr(i int) *int { return &i }
 
 func Seed(db *sql.DB, log *logger.Logger) error {
 	log.Info("Seeding database...")
+
+	adminHash, err := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("admin password hash: %w", err)
+	}
+	if _, err := db.Exec(`INSERT INTO users (username, password_hash, role) VALUES ('admin', $1, 'admin') ON CONFLICT (username) DO UPDATE SET password_hash = $1, role = 'admin'`, string(adminHash)); err != nil {
+		return fmt.Errorf("admin user: %w", err)
+	}
 
 	if _, err := db.Exec(`INSERT INTO category (id, name) VALUES (1, 'weapons'), (2, 'armor') ON CONFLICT (id) DO NOTHING`); err != nil {
 		return fmt.Errorf("category: %w", err)
@@ -284,7 +294,7 @@ func Seed(db *sql.DB, log *logger.Logger) error {
 		}
 	}
 
-	tables := []string{"category", "ammo", "mods", "ingredients", "weapon_item", "clothing_item"}
+	tables := []string{"category", "ammo", "mods", "ingredients", "weapon_item", "clothing_item", "users", "weapon_suggestions"}
 	for _, table := range tables {
 		if _, err := db.Exec(fmt.Sprintf("SELECT setval('%s_id_seq', COALESCE((SELECT MAX(id) FROM %s), 1))", table, table)); err != nil {
 			return fmt.Errorf("reset seq %s: %w", table, err)

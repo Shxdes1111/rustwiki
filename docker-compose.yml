@@ -36,6 +36,7 @@ services:
       - DB_PASSWORD=rustwiki_pass
       - DB_NAME=rustwiki
       - DB_SSL_MODE=disable
+      - JWT_SECRET=rustwiki-secret-change-in-production
       
   frontend:
     build: ./frontend

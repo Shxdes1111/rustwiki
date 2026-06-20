@@ -9,6 +9,38 @@ import (
 	"backend/internal/logger"
 )
 
+func AutoMigrate(db *sql.DB, log *logger.Logger) error {
+	log.Info("Running auto-migration...")
+
+	migrations := []string{
+		`CREATE TABLE IF NOT EXISTS users (
+			id SERIAL PRIMARY KEY,
+			username VARCHAR(100) UNIQUE NOT NULL,
+			password_hash VARCHAR(255) NOT NULL,
+			role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('guest', 'user', 'admin')),
+			created_at TIMESTAMP DEFAULT NOW()
+		)`,
+		`CREATE TABLE IF NOT EXISTS weapon_suggestions (
+			id SERIAL PRIMARY KEY,
+			user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+			payload JSONB NOT NULL,
+			status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+			created_at TIMESTAMP DEFAULT NOW(),
+			reviewed_at TIMESTAMP,
+			reviewed_by INTEGER REFERENCES users(id)
+		)`,
+	}
+
+	for _, m := range migrations {
+		if _, err := db.Exec(m); err != nil {
+			return fmt.Errorf("auto-migrate: %w", err)
+		}
+	}
+
+	log.Info("Auto-migration completed")
+	return nil
+}
+
 // DB представляет подключение к базе данных
 type DB struct {
 	*sql.DB

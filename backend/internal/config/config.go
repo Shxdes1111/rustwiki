@@ -7,9 +7,10 @@ import (
 
 // Config представляет конфигурацию приложения
 type Config struct {
-	Server   ServerConfig   `json:"server"`
-	Database DatabaseConfig `json:"database"`
-	Logger   LoggerConfig   `json:"logger"`
+	Server    ServerConfig    `json:"server"`
+	Database  DatabaseConfig  `json:"database"`
+	Logger    LoggerConfig    `json:"logger"`
+	JWTSecret string          `json:"jwt_secret"`
 }
 
 // ServerConfig представляет конфигурацию HTTP сервера
@@ -59,6 +60,7 @@ func Load() *Config {
 			Format: getEnv("LOG_FORMAT", "json"),
 			File:   getEnv("LOG_FILE", ""),
 		},
+		JWTSecret: getEnv("JWT_SECRET", "rustwiki-secret-key-change-in-production"),
 	}
 }
 
