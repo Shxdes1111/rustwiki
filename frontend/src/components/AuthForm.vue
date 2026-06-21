@@ -10,6 +10,7 @@ const tab = ref<'login' | 'register'>('login')
 
 const username = ref('')
 const password = ref('')
+const showPassword = ref(false)
 const error = ref('')
 const loading = ref(false)
 
@@ -72,15 +73,20 @@ function switchTab(t: 'login' | 'register') {
 
         <div class="field">
           <label for="password">Пароль</label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            placeholder="Password"
-            required
-            minlength="6"
-            maxlength="50"
-          />
+          <div class="password-wrapper">
+            <input
+              id="password"
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="Password"
+              required
+              minlength="6"
+              maxlength="50"
+            />
+            <button type="button" class="toggle-password" @click="showPassword = !showPassword" :title="showPassword ? 'Скрыть пароль' : 'Показать пароль'">
+              {{ showPassword ? '🙈' : '👁' }}
+            </button>
+          </div>
         </div>
 
         <p v-if="error" class="error">{{ error }}</p>
@@ -186,6 +192,34 @@ function switchTab(t: 'login' | 'register') {
 
 .field input:focus {
   border-color: #ef4444;
+}
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 4px;
+  line-height: 1;
+  color: #666;
+  transition: color 0.2s;
+}
+
+.toggle-password:hover {
+  color: white;
 }
 
 .error {

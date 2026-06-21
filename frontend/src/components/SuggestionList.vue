@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useWeaponStore } from '../stores/weapons'
 import { useToast } from 'vue-toastification'
@@ -10,8 +10,14 @@ const toast = useToast()
 
 const suggestions = ref<any[]>([])
 const loading = ref(false)
+const isMobile = ref(window.innerWidth < 768)
+
+function checkWidth() {
+  isMobile.value = window.innerWidth < 768
+}
 
 onMounted(async () => {
+  window.addEventListener('resize', checkWidth)
   loading.value = true
   try {
     suggestions.value = await store.fetchSuggestions()
@@ -20,6 +26,10 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkWidth)
 })
 
 const goToDetails = (id: number) => {
@@ -57,7 +67,9 @@ const handleReject = async (id: number) => {
 
     <div v-if="loading" class="loading">Loading...</div>
     <div v-else-if="!suggestions.length" class="empty">No suggestions yet.</div>
-    <table v-else class="suggestion-table">
+
+    <!-- Desktop: таблица -->
+    <table v-show="!isMobile" v-else class="suggestion-table">
       <thead>
         <tr>
           <th>ID</th>
@@ -82,6 +94,25 @@ const handleReject = async (id: number) => {
         </tr>
       </tbody>
     </table>
+
+    <!-- Mobile: карточки -->
+    <div v-show="isMobile" class="card-list">
+      <div v-for="s in suggestions" :key="s.id" class="suggestion-card" @click="goToDetails(s.id)">
+        <div class="card-header">
+          <span class="card-id">#{{ s.id }}</span>
+          <span :class="['badge', `badge-${s.status}`]">{{ s.status }}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-row"><span class="card-label">Weapon</span><span class="card-value">{{ s.payload?.name || 'Unknown' }}</span></div>
+          <div class="card-row"><span class="card-label">Author</span><span class="card-value">{{ s.username || `User #${s.user_id}` }}</span></div>
+          <div class="card-row"><span class="card-label">Created</span><span class="card-value">{{ new Date(s.created_at).toLocaleDateString() }}</span></div>
+        </div>
+        <div v-if="s.status === 'pending'" class="card-actions" @click.stop>
+          <button class="btn-approve" @click="handleApprove(s.id)">Approve</button>
+          <button class="btn-reject" @click="handleReject(s.id)">Reject</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -131,7 +162,6 @@ const handleReject = async (id: number) => {
 
 @media (max-width: 768px) {
   .page-title { white-space: normal; font-size: 1.8rem; }
-  table { display: block; overflow-x: auto; }
 }
 
 th, td {
@@ -209,4 +239,75 @@ td:nth-child(3) {
 }
 
 .btn-reject:hover { background: #b91c1c; }
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.suggestion-card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.suggestion-card:hover { background: #262626; }
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-id {
+  font-weight: bold;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-label {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.card-value {
+  color: #f8fafc;
+  font-size: 0.9rem;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: stretch;
+}
+
+.card-actions .btn-approve,
+.card-actions .btn-reject {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+}
 </style>

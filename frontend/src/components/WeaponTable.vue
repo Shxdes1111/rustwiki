@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, inject } from 'vue'
+import { ref, watch, nextTick, onMounted, onUnmounted, inject } from 'vue'
 import { useWeaponStore } from '../stores/weapons'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
@@ -11,11 +11,32 @@ const router = useRouter()
 
 const openAuth = inject<() => void>('openAuth', () => {})
 
+const isMobile = ref(window.innerWidth < 768)
+
+function onResize() {
+  isMobile.value = window.innerWidth < 768
+}
+
+onMounted(() => {
+  window.addEventListener('resize', onResize)
+  if (!isMobile.value) initTableHeight()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', onResize)
+})
+
 // Ссылки на элементы для замера высоты
 const tableWrapper = ref<HTMLElement | null>(null)
 const innerTable = ref<HTMLElement | null>(null)
 
-// Функция перехода на детали
+async function initTableHeight() {
+  await nextTick()
+  if (tableWrapper.value && innerTable.value) {
+    tableWrapper.value.style.height = `${innerTable.value.offsetHeight}px`
+  }
+}
+
 const goToDetails = (id: number) => {
   router.push(`/weapon/${id}`)
 }
@@ -34,8 +55,18 @@ const handleDelete = async (id: number) => {
   }
 }
 
-// Главная магия: следим за изменением отфильтрованного списка
+watch(isMobile, (mobile) => {
+  if (mobile) {
+    if (tableWrapper.value) {
+      tableWrapper.value.style.height = ''
+    }
+  } else {
+    initTableHeight()
+  }
+})
+
 watch(() => store.filteredWeapons, async () => {
+  if (isMobile.value) return
   await nextTick()
   
   if (tableWrapper.value && innerTable.value) {
@@ -43,20 +74,12 @@ watch(() => store.filteredWeapons, async () => {
     tableWrapper.value.style.height = `${newHeight}px`
   }
 }, { deep: true })
-
-// Задаем начальную высоту при первой загрузке страницы
-onMounted(async () => {
-  await nextTick()
-  if (tableWrapper.value && innerTable.value) {
-    tableWrapper.value.style.height = `${innerTable.value.offsetHeight}px`
-  }
-})
 </script>
 
 <template>
   <SearchBar />
   
-  <div ref="tableWrapper" class="table-blind-container">
+  <div ref="tableWrapper" v-show="!isMobile" class="table-blind-container">
     <table ref="innerTable" class="wiki-table">
       <thead>
         <tr>
@@ -80,6 +103,20 @@ onMounted(async () => {
     </table>
   </div>
 
+  <div v-show="isMobile" class="card-list">
+    <div v-for="(item, index) in store.filteredWeapons" :key="item.id" class="weapon-card" @click="goToDetails(item.id)">
+      <div class="card-header">
+        <span class="card-num">#{{ index + 1 }}</span>
+        <span class="badge">{{ item.type }}</span>
+      </div>
+      <div class="card-body">{{ item.name }}</div>
+      <div class="card-actions" @click.stop>
+        <button class="view-btn" @click="goToDetails(item.id)">View Details</button>
+        <button v-if="authStore.isAdmin" class="delete-btn" @click="handleDelete(item.id)">×</button>
+      </div>
+    </div>
+  </div>
+
   <div v-if="store.searchTerm && !store.filteredWeapons.length" class="no-results">
     <template v-if="authStore.isAuthenticated">
       <span>No weapon found for "{{ store.searchTerm }}". </span>
@@ -95,6 +132,7 @@ onMounted(async () => {
 .table-blind-container {
   width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   transition: height 0.8s cubic-bezier(0.25, 1, 0.5, 1); 
 }
 
@@ -118,6 +156,12 @@ th, td {
 
 .table-row:hover {
   background-color: #262626;
+}
+
+@media (max-width: 768px) {
+  .table-blind-container {
+    transition: none !important;
+  }
 }
 
 .actions-cell {
@@ -159,6 +203,69 @@ th, td {
 
 .delete-btn:hover {
   color: #dc2626;
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.weapon-card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.weapon-card:hover {
+  background: #262626;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.card-num {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.card-body {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f8fafc;
+  margin-bottom: 12px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.card-actions .view-btn {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+}
+
+.card-actions .delete-btn {
+  margin-left: 0;
+  padding: 8px 14px;
+  background: #333;
+  border-radius: 4px;
+  font-size: 1.2rem;
+}
+
+.card-actions .delete-btn:hover {
+  background: #444;
+  color: #ef4444;
 }
 
 .no-results {

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -136,6 +137,9 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 }
 
 func (r *weaponRepository) CreateWeapon(req models.CreateWeaponRequest) (int, error) {
+	if len(req.Description) > 500 {
+		return 0, fmt.Errorf("description too long (max 500 chars)")
+	}
 	r.log.Info("CreateWeapon: начинаю транзакцию создания оружия")
 
 	tx, err := r.db.Begin()

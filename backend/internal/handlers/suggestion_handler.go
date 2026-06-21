@@ -79,11 +79,23 @@ func (h *SuggestionHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload json.RawMessage
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+	var req models.CreateWeaponRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, `{"error":"Invalid JSON"}`, http.StatusBadRequest)
 		return
 	}
+
+	if len(req.Description) > 500 {
+		http.Error(w, `{"error":"Description too long (max 500 chars)"}`, http.StatusBadRequest)
+		return
+	}
+
+	raw, err := json.Marshal(req)
+	if err != nil {
+		http.Error(w, `{"error":"Failed to encode payload"}`, http.StatusInternalServerError)
+		return
+	}
+	payload := json.RawMessage(raw)
 
 	s, err := h.suggestionRepo.Create(claims.UserID, payload)
 	if err != nil {

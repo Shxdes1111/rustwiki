@@ -152,7 +152,7 @@ const handleSubmit = async () => {
 
       <div class="form-group">
         <label for="description">Description</label>
-        <textarea id="description" v-model="form.description" class="form-input" rows="4"></textarea>
+        <textarea id="description" v-model="form.description" class="form-input" rows="4" maxlength="500"></textarea>
       </div>
 
       <div class="form-group">
