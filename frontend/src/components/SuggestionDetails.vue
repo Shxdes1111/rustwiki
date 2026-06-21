@@ -167,6 +167,9 @@ const handleReject = async () => {
   border-bottom: 1px solid #5d5d5d;
   padding-bottom: 10px;
   margin-bottom: 20px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .loading {
@@ -212,6 +215,7 @@ const handleReject = async () => {
   border: 1px solid #333;
   border-radius: 8px;
   padding: 16px;
+  min-width: 0;
 }
 
 .detail-card h3 {
@@ -228,6 +232,14 @@ const handleReject = async () => {
   padding: 6px 0;
   border-bottom: 1px solid #2a2a2a;
   font-size: 0.9rem;
+  overflow: hidden;
+}
+
+.info-row span:last-child {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .info-row .label {
@@ -239,6 +251,7 @@ const handleReject = async () => {
   font-size: 0.9rem;
   line-height: 1.5;
   color: #cbd5e1;
+  overflow-wrap: break-word;
 }
 
 ul {

@@ -111,6 +111,9 @@ const handleReject = async (id: number) => {
   border-bottom: 1px solid #5d5d5d;
   padding-bottom: 10px;
   margin-bottom: 20px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .loading, .empty {
@@ -130,6 +133,14 @@ th, td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #333;
+}
+
+td:nth-child(2),
+td:nth-child(3) {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .suggestion-row {

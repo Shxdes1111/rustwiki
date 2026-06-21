@@ -66,6 +66,7 @@ function switchTab(t: 'login' | 'register') {
             placeholder="Username"
             required
             minlength="3"
+            maxlength="50"
           />
         </div>
 
@@ -78,6 +79,7 @@ function switchTab(t: 'login' | 'register') {
             placeholder="Password"
             required
             minlength="6"
+            maxlength="50"
           />
         </div>
 

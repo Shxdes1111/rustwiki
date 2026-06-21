@@ -104,12 +104,13 @@ onMounted(async () => {
 
         <!-- Раздел: Ingredients Icons -->
         <div class="infobox-section-title">Ingredients</div>
-        <div class="infobox-grid bg-darker">
+        <div v-if="weapon.ingredients?.length" class="infobox-grid bg-darker">
           <div v-for="ing in weapon.ingredients" :key="ing.id" class="grid-item content-center">
             <img v-if="ing.icon" :src="ing.icon" :alt="ing.name" class="grid-icon" />
             <span class="count">x{{ ing.amount || 1 }}</span>
           </div>
         </div>
+        <div v-else class="empty-box">No ingredients</div>
       </aside>
     </div>
   </div>
@@ -149,6 +150,7 @@ onMounted(async () => {
 
 .main-content {
   flex: 1;
+  min-width: 0;
 }
 
 .page-title {
@@ -156,12 +158,16 @@ onMounted(async () => {
   border-bottom: 1px solid #5d5d5d;
   padding-bottom: 10px;
   margin-bottom: 20px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .description-text {
   line-height: 1.6;
   font-size: 1.1rem;
   color: #cbd5e1;
+  overflow-wrap: break-word;
 }
 
 .crafting-section {
@@ -208,6 +214,9 @@ onMounted(async () => {
   padding: 10px;
   font-size: 1.3rem;
   font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .infobox-image-box {
@@ -250,11 +259,16 @@ onMounted(async () => {
   padding: 8px 12px;
   border-bottom: 1px solid #676767;
   font-size: 0.9rem;
+  overflow: hidden;
 }
 
 .infobox-row .value {
   font-weight: bold;
   color: #f8fafc;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 /* Оптимизированная CSS Grid сетка для модов и патронов */

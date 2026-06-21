@@ -37,14 +37,6 @@ func ptr(i int) *int { return &i }
 func Seed(db *sql.DB, log *logger.Logger) error {
 	log.Info("Seeding database...")
 
-	adminHash, err := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
-	if err != nil {
-		return fmt.Errorf("admin password hash: %w", err)
-	}
-	if _, err := db.Exec(`INSERT INTO users (username, password_hash, role) VALUES ('admin', $1, 'admin') ON CONFLICT (username) DO UPDATE SET password_hash = $1, role = 'admin'`, string(adminHash)); err != nil {
-		return fmt.Errorf("admin user: %w", err)
-	}
-
 	admin1Hash, err := bcrypt.GenerateFromPassword([]byte("admin1"), bcrypt.DefaultCost)
 	if err != nil {
 		return fmt.Errorf("admin1 password hash: %w", err)
