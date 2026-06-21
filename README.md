@@ -1,1 +1,2 @@
 # Проект Rust Wiki создан для того чтобы собрать всю информацию об игре
+# сайт пока хостится на ссылке https://overlay-glucose-reclusive.ngrok-free.dev/ и без VPN он не работает потому что backend на localtunnel
