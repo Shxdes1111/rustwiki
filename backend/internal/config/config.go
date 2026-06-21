@@ -19,6 +19,7 @@ type ServerConfig struct {
 	Host         string `json:"host"`
 	ReadTimeout  int    `json:"read_timeout"`
 	WriteTimeout int    `json:"write_timeout"`
+	PublicURL    string `json:"public_url"`
 }
 
 // DatabaseConfig представляет конфигурацию базы данных
@@ -46,6 +47,7 @@ func Load() *Config {
 			Host:         getEnv("SERVER_HOST", "0.0.0.0"),
 			ReadTimeout:  getEnvAsInt("SERVER_READ_TIMEOUT", 10),
 			WriteTimeout: getEnvAsInt("SERVER_WRITE_TIMEOUT", 10),
+			PublicURL:    getEnv("PUBLIC_URL", "http://localhost:8080"),
 		},
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),

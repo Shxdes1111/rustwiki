@@ -18,12 +18,13 @@ type WeaponRepository interface {
 }
 
 type weaponRepository struct {
-	db  *sql.DB
-	log *logger.Logger
+	db        *sql.DB
+	log       *logger.Logger
+	publicURL string
 }
 
-func NewWeaponRepository(db *sql.DB, log *logger.Logger) WeaponRepository {
-	return &weaponRepository{db: db, log: log}
+func NewWeaponRepository(db *sql.DB, log *logger.Logger, publicURL string) WeaponRepository {
+	return &weaponRepository{db: db, log: log, publicURL: publicURL}
 }
 
 func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
@@ -192,8 +193,8 @@ func (r *weaponRepository) DeleteWeapon(id int) error {
 
 	if icon != nil {
 		cleanPath := *icon
-		if strings.HasPrefix(cleanPath, "http://localhost:8080/uploads/") {
-			cleanPath = strings.TrimPrefix(cleanPath, "http://localhost:8080")
+		if strings.HasPrefix(cleanPath, r.publicURL+"/uploads/") {
+			cleanPath = strings.TrimPrefix(cleanPath, r.publicURL)
 		}
 		if strings.HasPrefix(cleanPath, "/uploads/") {
 			relPath := strings.TrimPrefix(cleanPath, "/uploads/")

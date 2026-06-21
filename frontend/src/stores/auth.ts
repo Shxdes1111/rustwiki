@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
 const TOKEN_KEY = 'rustwiki_token'
-const API_BASE = 'http://localhost:8080'
+const API_BASE = ''
 
 export interface User {
   id: number

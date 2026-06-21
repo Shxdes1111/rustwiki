@@ -37,6 +37,7 @@ services:
       - DB_NAME=rustwiki
       - DB_SSL_MODE=disable
       - JWT_SECRET=rustwiki-secret-change-in-production
+      - PUBLIC_URL=https://rare-dingos-fly.loca.lt
       
   frontend:
     build: ./frontend
@@ -47,6 +48,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
+      - API_PROXY=http://backend:8080
       - UPLOAD_PROXY=http://backend:8080
 
   pgadmin:

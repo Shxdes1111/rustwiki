@@ -76,24 +76,26 @@ export const useWeaponStore = defineStore('weapons', () => {
 
   const modCache = ref<Record<number, ModDetail>>({})
   const modTimestamps = ref<Record<number, number>>({})
+  
+  const API_BASE = ''
 
   async function fetchWeapons() {
-    const res = await fetch('http://localhost:8080/api/weapons')
+    const res = await fetch(`${API_BASE}/api/weapons`)
     weapons.value = await res.json()
   }
 
   async function fetchAllAmmo() {
-    const res = await fetch('http://localhost:8080/api/ammo')
+    const res = await fetch(`${API_BASE}/api/ammo`)
     ammoList.value = await res.json()
   }
 
   async function fetchAllMods() {
-    const res = await fetch('http://localhost:8080/api/mods')
+    const res = await fetch(`${API_BASE}/api/mods`)
     modList.value = await res.json()
   }
 
   async function fetchAllIngredients() {
-    const res = await fetch('http://localhost:8080/api/ingredients')
+    const res = await fetch(`${API_BASE}/api/ingredients`)
     ingredientList.value = await res.json()
   }
 
@@ -101,7 +103,7 @@ export const useWeaponStore = defineStore('weapons', () => {
     if (weaponCache.value[id] && Date.now() - weaponTimestamps.value[id] < CACHE_TTL) {
       return weaponCache.value[id]
     }
-    const res = await fetch(`http://localhost:8080/api/weapons/${id}`)
+    const res = await fetch(`${API_BASE}/api/weapons/${id}`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
     weaponCache.value[id] = data
@@ -113,7 +115,7 @@ export const useWeaponStore = defineStore('weapons', () => {
     if (ammoCache.value[id] && Date.now() - ammoTimestamps.value[id] < CACHE_TTL) {
       return ammoCache.value[id]
     }
-    const res = await fetch(`http://localhost:8080/api/ammo/${id}`)
+    const res = await fetch(`${API_BASE}/api/ammo/${id}`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
     ammoCache.value[id] = data
@@ -125,7 +127,7 @@ export const useWeaponStore = defineStore('weapons', () => {
     if (modCache.value[id] && Date.now() - modTimestamps.value[id] < CACHE_TTL) {
       return modCache.value[id]
     }
-    const res = await fetch(`http://localhost:8080/api/mods/${id}`)
+    const res = await fetch(`${API_BASE}/api/mods/${id}`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
     modCache.value[id] = data
@@ -140,8 +142,6 @@ export const useWeaponStore = defineStore('weapons', () => {
       item.type.toLowerCase().includes(s)
     )
   })
-
-  const API_BASE = 'http://localhost:8080'
 
   function authHeaders(): Record<string, string> {
     const auth = useAuthStore()
@@ -173,7 +173,7 @@ export const useWeaponStore = defineStore('weapons', () => {
       'Content-Type': 'application/json',
       ...authHeaders(),
     }
-    const res = await fetch('http://localhost:8080/api/weapons', {
+    const res = await fetch(`${API_BASE}/api/weapons`, {
       method: 'POST',
       headers,
       body: JSON.stringify(data),
@@ -187,7 +187,7 @@ export const useWeaponStore = defineStore('weapons', () => {
   }
 
   async function deleteWeapon(id: number): Promise<void> {
-    const res = await fetch(`http://localhost:8080/api/weapons/${id}`, {
+    const res = await fetch(`${API_BASE}/api/weapons/${id}`, {
       method: 'DELETE',
       headers: authHeaders(),
     })
@@ -201,7 +201,7 @@ export const useWeaponStore = defineStore('weapons', () => {
       'Content-Type': 'application/json',
       ...authHeaders(),
     }
-    const res = await fetch('http://localhost:8080/api/suggestions', {
+    const res = await fetch(`${API_BASE}/api/suggestions`, {
       method: 'POST',
       headers,
       body: JSON.stringify(data),
@@ -214,7 +214,7 @@ export const useWeaponStore = defineStore('weapons', () => {
   }
 
   async function fetchSuggestions(): Promise<Suggestion[]> {
-    const res = await fetch('http://localhost:8080/api/suggestions', {
+    const res = await fetch(`${API_BASE}/api/suggestions`, {
       headers: authHeaders(),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -224,7 +224,7 @@ export const useWeaponStore = defineStore('weapons', () => {
   }
 
   async function fetchSuggestion(id: number): Promise<Suggestion> {
-    const res = await fetch(`http://localhost:8080/api/suggestions/${id}`, {
+    const res = await fetch(`${API_BASE}/api/suggestions/${id}`, {
       headers: authHeaders(),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -232,7 +232,7 @@ export const useWeaponStore = defineStore('weapons', () => {
   }
 
   async function approveSuggestion(id: number) {
-    const res = await fetch(`http://localhost:8080/api/suggestions/${id}/approve`, {
+    const res = await fetch(`${API_BASE}/api/suggestions/${id}/approve`, {
       method: 'PUT',
       headers: authHeaders(),
     })
@@ -244,7 +244,7 @@ export const useWeaponStore = defineStore('weapons', () => {
   }
 
   async function rejectSuggestion(id: number) {
-    const res = await fetch(`http://localhost:8080/api/suggestions/${id}/reject`, {
+    const res = await fetch(`${API_BASE}/api/suggestions/${id}/reject`, {
       method: 'PUT',
       headers: authHeaders(),
     })

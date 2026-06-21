@@ -37,7 +37,7 @@ func main() {
 		log.Fatalf("Failed to seed database: %v", err)
 	}
 
-	weaponRepo := repository.NewWeaponRepository(db.DB, log)
+	weaponRepo := repository.NewWeaponRepository(db.DB, log, cfg.Server.PublicURL)
 	modRepo := repository.NewModRepository(db.DB, log)
 	ammoRepo := repository.NewAmmoRepository(db.DB, log)
 	ingredientRepo := repository.NewIngredientRepository(db.DB, log)

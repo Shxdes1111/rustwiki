@@ -18,7 +18,9 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      '/api': process.env.API_PROXY || 'http://localhost:8080',
       '/uploads': process.env.UPLOAD_PROXY || 'http://localhost:8080',
     },
+    allowedHosts: true
   },
 })
