@@ -125,12 +125,16 @@ h1, h2, h3 {
 #app {
   max-width: 1200px;
   width: 100%;
-  min-height: 1500px;
-  height: 100%;
+  min-height: 100vh;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
   font-weight: normal;
   background-color: #121212;
+}
+
+@media (max-width: 768px) {
+  #app { padding: 0.5rem; }
+  body { background-attachment: scroll; }
 }
 
 a,.green {
@@ -149,13 +153,12 @@ a,.green {
 @media (min-width: 1024px) {
   body {
     display: flex;
-    flex-direction: column; /* Выстраиваем контент в колонку сверху вниз */
-    justify-content: flex-start; /* Прижимаем строго к верху */
-    align-items: center; /* Центрируем по горизонтали */
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
     min-height: 100vh;
   }
   #app {
-    
     padding: 0 2rem;
   }
 }

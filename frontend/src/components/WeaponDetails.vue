@@ -146,11 +146,12 @@ onMounted(async () => {
 .wiki-layout {
   display: flex;
   gap: 40px;
+  flex-wrap: wrap;
 }
 
 .main-content {
   flex: 1;
-  min-width: 0;
+  min-width: 280px;
 }
 
 .page-title {
@@ -205,6 +206,12 @@ onMounted(async () => {
   overflow: hidden;
   align-self: flex-start;
   flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .wiki-layout { flex-direction: column; }
+  .infobox { width: 100%; }
+  .page-title { white-space: normal; font-size: 1.8rem; }
 }
 
 .infobox-header {

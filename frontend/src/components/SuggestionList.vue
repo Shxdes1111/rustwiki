@@ -129,6 +129,11 @@ const handleReject = async (id: number) => {
   background-color: #1a1a1a;
 }
 
+@media (max-width: 768px) {
+  .page-title { white-space: normal; font-size: 1.8rem; }
+  table { display: block; overflow-x: auto; }
+}
+
 th, td {
   padding: 12px;
   text-align: left;

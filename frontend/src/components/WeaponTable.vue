@@ -94,7 +94,7 @@ onMounted(async () => {
 <style scoped>
 .table-blind-container {
   width: 100%;
-  overflow: hidden;
+  overflow-x: auto;
   transition: height 0.8s cubic-bezier(0.25, 1, 0.5, 1); 
 }
 
@@ -109,6 +109,7 @@ th, td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #333;
+  vertical-align: middle;
 }
 
 .table-row {
@@ -120,9 +121,7 @@ th, td {
 }
 
 .actions-cell {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  white-space: nowrap;
 }
 
 .badge {

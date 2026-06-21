@@ -318,6 +318,11 @@ const handleSubmit = async () => {
 .form-row {
   display: flex;
   gap: 16px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .form-row { flex-direction: column; }
 }
 
 .form-row .form-group {

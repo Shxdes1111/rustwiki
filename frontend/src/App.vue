@@ -104,6 +104,15 @@ onUnmounted(() => {
   margin-top: 12px;
 }
 
+@media (max-width: 768px) {
+  .wiki-container { padding: 16px; }
+  .header { margin-top: 20px; margin-bottom: 20px; }
+  .header h1 { font-size: 2rem; }
+  .header-right { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .login-btn { margin: 0; }
+  .user-avatar { margin: 0; }
+}
+
 .login-btn {
   height: 35px;
   width: 90px;
