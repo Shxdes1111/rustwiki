@@ -136,7 +136,6 @@ const handleDelete = async (id: number) => {
   max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
-  font-family: sans-serif;
   color: #e2e8f0;
 }
 

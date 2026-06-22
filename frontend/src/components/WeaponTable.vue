@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, inject } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted, inject } from 'vue'
 import { useWeaponStore } from '../stores/weapons'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
@@ -34,22 +34,19 @@ const handleDelete = async (id: number) => {
   }
 }
 
-// Главная магия: следим за изменением отфильтрованного списка
-watch(() => store.filteredWeapons, async () => {
-  await nextTick()
-  
-  if (tableWrapper.value && innerTable.value) {
-    const newHeight = innerTable.value.offsetHeight
-    tableWrapper.value.style.height = `${newHeight}px`
-  }
-}, { deep: true })
-
-// Задаем начальную высоту при первой загрузке страницы
+// Автоматически отслеживаем изменение размера таблицы
 onMounted(async () => {
   await nextTick()
-  if (tableWrapper.value && innerTable.value) {
-    tableWrapper.value.style.height = `${innerTable.value.offsetHeight}px`
+  if (!innerTable.value) return
+  const updateHeight = () => {
+    if (tableWrapper.value && innerTable.value) {
+      tableWrapper.value.style.height = `${innerTable.value.offsetHeight}px`
+    }
   }
+  updateHeight()
+  const observer = new ResizeObserver(updateHeight)
+  observer.observe(innerTable.value)
+  onUnmounted(() => observer.disconnect())
 })
 </script>
 
@@ -82,11 +79,11 @@ onMounted(async () => {
 
   <div v-if="store.searchTerm && !store.filteredWeapons.length" class="no-results">
     <template v-if="authStore.isAuthenticated">
-      <span>No weapon found for "{{ store.searchTerm }}". </span>
+      <span>No articles found for "{{ store.searchTerm }}". </span>
       <button class="create-btn" @click="goToCreate">Create</button>
     </template>
     <span v-else>
-      To create a new weapon, please <a class="auth-link" @click="openAuth()">log in</a>
+      To create a new article, please <a class="auth-link" @click="openAuth()">log in</a>
     </span>
   </div>
 </template>
@@ -95,6 +92,7 @@ onMounted(async () => {
 .table-blind-container {
   width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   transition: height 0.8s cubic-bezier(0.25, 1, 0.5, 1); 
 }
 

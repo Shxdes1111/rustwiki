@@ -47,19 +47,19 @@ function switchTab(t: 'login' | 'register') {
           :class="['tab', { active: tab === 'login' }]"
           @click="switchTab('login')"
         >
-          Вход
+          Login
         </button>
         <button
           :class="['tab', { active: tab === 'register' }]"
           @click="switchTab('register')"
         >
-          Регистрация
+          Register
         </button>
       </div>
 
       <form @submit.prevent="handleSubmit" class="auth-form">
         <div class="field">
-          <label for="username">Имя пользователя</label>
+          <label for="username">Username</label>
           <input
             id="username"
             v-model="username"
@@ -72,7 +72,7 @@ function switchTab(t: 'login' | 'register') {
         </div>
 
         <div class="field">
-          <label for="password">Пароль</label>
+          <label for="password">Password</label>
           <div class="password-wrapper">
             <input
               id="password"
@@ -83,7 +83,7 @@ function switchTab(t: 'login' | 'register') {
               minlength="6"
               maxlength="50"
             />
-            <button type="button" class="toggle-password" @click="showPassword = !showPassword" :title="showPassword ? 'Скрыть пароль' : 'Показать пароль'">
+            <button type="button" class="toggle-password" @click="showPassword = !showPassword" :title="showPassword ? 'Hide password' : 'Show password'">
               {{ showPassword ? '🙈' : '👁' }}
             </button>
           </div>
@@ -92,7 +92,7 @@ function switchTab(t: 'login' | 'register') {
         <p v-if="error" class="error">{{ error }}</p>
 
         <button type="submit" class="submit-btn" :disabled="loading">
-          {{ loading ? 'Подождите...' : tab === 'login' ? 'Войти' : 'Зарегистрироваться' }}
+          {{ loading ? 'Please wait...' : tab === 'login' ? 'Sign in' : 'Sign up' }}
         </button>
       </form>
     </div>

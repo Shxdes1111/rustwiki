@@ -100,7 +100,10 @@ onUnmounted(() => {
 
 .header-right {
   width: 100%;
-  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
   margin-top: 12px;
 }
 
@@ -108,15 +111,12 @@ onUnmounted(() => {
   .wiki-container { padding: 16px; }
   .header { margin-top: 20px; margin-bottom: 20px; }
   .header h1 { font-size: 2rem; }
-  .header-right { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-  .login-btn { margin: 0; }
-  .user-avatar { margin: 0; }
+  .header-right { flex-wrap: wrap; justify-content: center; }
 }
 
 .login-btn {
   height: 35px;
   width: 90px;
-  margin: 0px 20px;
   text-align: center;
   align-items: center;
   background: #ce422b;
@@ -135,15 +135,13 @@ onUnmounted(() => {
 .admin-btn {
   height: 35px;
   padding: 0 16px;
-  margin: 0 8px;
   background: #2563eb;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1rem;
   transition: background 0.2s;
-  vertical-align: middle;
 }
 
 .admin-btn:hover {
@@ -158,7 +156,6 @@ onUnmounted(() => {
 .user-avatar {
   height: 35px;
   width: 90px;
-  margin: 0px 20px;
   border-radius: 8px;
   background: #ce422b;
   color: white;

@@ -127,7 +127,6 @@ onMounted(async () => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  font-family: sans-serif;
   color: #e2e8f0;
 }
 

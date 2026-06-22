@@ -284,7 +284,6 @@ const handleSubmit = async () => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  font-family: sans-serif;
   color: #e2e8f0;
 }
 
@@ -310,9 +309,8 @@ const handleSubmit = async () => {
 .create-form {
   display: flex;
   flex-direction: column;
-
   max-width: 500px;
-  
+  margin: 0 auto;
 }
 
 .form-row {
@@ -355,7 +353,6 @@ const handleSubmit = async () => {
   border-radius: 4px;
   color: #e2e8f0;
   font-size: 1rem;
-  font-family: sans-serif;
   box-sizing: border-box;
 }
 
