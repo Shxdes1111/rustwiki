@@ -77,7 +77,7 @@ export const useWeaponStore = defineStore('weapons', () => {
   const modCache = ref<Record<number, ModDetail>>({})
   const modTimestamps = ref<Record<number, number>>({})
   
-  const API_BASE = ''
+  const API_BASE = import.meta.env.VITE_API_BASE || ''
 
   async function fetchWeapons() {
     const res = await fetch(`${API_BASE}/api/weapons`)

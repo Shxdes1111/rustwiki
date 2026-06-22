@@ -60,6 +60,9 @@ func (r *suggestionRepository) FindAll() ([]models.WeaponSuggestion, error) {
 		}
 		suggestions = append(suggestions, s)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return suggestions, nil
 }
 

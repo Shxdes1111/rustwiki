@@ -115,7 +115,7 @@ func (m *AuthMiddleware) AuthenticateOptional(next http.HandlerFunc) http.Handle
 func (m *AuthMiddleware) RequireRole(next http.HandlerFunc, role string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		claims, ok := r.Context().Value(UserContextKey).(*UserClaims)
-		if !ok {
+		if !ok || claims == nil {
 			m.Logger.WithFields(logrus.Fields{
 				"ip":   r.RemoteAddr,
 				"path": r.URL.Path,

@@ -24,7 +24,7 @@ func (h *WeaponHandler) GetWeapons(w http.ResponseWriter, r *http.Request) {
 
 	weapons, err := h.weaponRepo.GetAllWeapons()
 	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 
@@ -36,18 +36,18 @@ func (h *WeaponHandler) GetWeapon(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Invalid weapon ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid weapon ID")
 		return
 	}
 
 	weapon, err := h.weaponRepo.GetWeaponByID(id)
 	if err != nil {
 		h.Logger.Errorf("ERROR: %v", err)
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 	if weapon == nil {
-		http.Error(w, "Weapon not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "Weapon not found")
 		return
 	}
 
@@ -79,13 +79,13 @@ func (h *WeaponHandler) CreateWeapon(w http.ResponseWriter, r *http.Request) {
 func (h *WeaponHandler) DeleteWeapon(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Invalid weapon ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid weapon ID")
 		return
 	}
 
 	if err := h.weaponRepo.DeleteWeapon(id); err != nil {
 		h.Logger.Errorf("DeleteWeapon: %v", err)
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 

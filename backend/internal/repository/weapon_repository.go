@@ -30,7 +30,7 @@ func NewWeaponRepository(db *sql.DB, log *logger.Logger, publicURL string) Weapo
 
 func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
 	r.log.Debug("GetAllWeapons: делаю запрос в таблицу weapon_item")
-	rows, err := r.db.Query("SELECT id, name, type, description, shortname, icon, COALESCE(capacity, 0), COALESCE(time_to_craft, 0) FROM weapon_item ORDER BY id ASC")
+	rows, err := r.db.Query("SELECT id, name, type, firemode, craftable, stacksize, description, shortname, icon, capacity, time_to_craft, category_id FROM weapon_item ORDER BY id ASC")
 	if err != nil {
 		return nil, err
 	}
@@ -39,10 +39,16 @@ func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
 	var weapons []models.WeaponItem
 	for rows.Next() {
 		var weapon models.WeaponItem
-		if err := rows.Scan(&weapon.ID, &weapon.Name, &weapon.Type, &weapon.Description, &weapon.Shortname, &weapon.Icon, &weapon.Capacity, &weapon.TimeToCraft); err != nil {
+		var cap, ttc sql.NullInt64
+		if err := rows.Scan(&weapon.ID, &weapon.Name, &weapon.Type, &weapon.Firemode, &weapon.Craftable, &weapon.Stacksize, &weapon.Description, &weapon.Shortname, &weapon.Icon, &cap, &ttc, &weapon.CategoryID); err != nil {
 			return nil, err
 		}
+		if cap.Valid { v := int(cap.Int64); weapon.Capacity = &v }
+		if ttc.Valid { v := int(ttc.Int64); weapon.TimeToCraft = &v }
 		weapons = append(weapons, weapon)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return weapons, nil
@@ -51,12 +57,15 @@ func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
 func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 	r.log.Debug("GetWeaponByID: делаю запрос в таблицу weapon_item")
 	row := r.db.QueryRow(
-		"SELECT id, name, type, firemode, craftable, stacksize, description, shortname, icon, COALESCE(capacity, 0), COALESCE(time_to_craft, 0), category_id FROM weapon_item WHERE id = $1",
+		"SELECT id, name, type, firemode, craftable, stacksize, description, shortname, icon, capacity, time_to_craft, category_id FROM weapon_item WHERE id = $1",
 		id,
 	)
 
 	var weapon models.WeaponItem
-	err := row.Scan(&weapon.ID, &weapon.Name, &weapon.Type, &weapon.Firemode, &weapon.Craftable, &weapon.Stacksize, &weapon.Description, &weapon.Shortname, &weapon.Icon, &weapon.Capacity, &weapon.TimeToCraft, &weapon.CategoryID)
+	var cap, ttc sql.NullInt64
+	err := row.Scan(&weapon.ID, &weapon.Name, &weapon.Type, &weapon.Firemode, &weapon.Craftable, &weapon.Stacksize, &weapon.Description, &weapon.Shortname, &weapon.Icon, &cap, &ttc, &weapon.CategoryID)
+	if cap.Valid { v := int(cap.Int64); weapon.Capacity = &v }
+	if ttc.Valid { v := int(ttc.Int64); weapon.TimeToCraft = &v }
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -85,6 +94,9 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
         }
         weapon.Ammo = append(weapon.Ammo, ammo)
     }
+    if err := ammoRows.Err(); err != nil {
+        return nil, err
+    }
 
 	// mods
 	r.log.Debug("GetWeaponByID: делаю запрос в таблицы mods и weapon_mods")
@@ -107,6 +119,9 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 			return nil, err
 		}
 		weapon.Mods = append(weapon.Mods, mod)
+	}
+	if err := modRows.Err(); err != nil {
+		return nil, err
 	}
 
 	// ingredients
@@ -132,6 +147,9 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 		ing.WeaponItemID = &id 
 		weapon.Ingredients = append(weapon.Ingredients, ing)
 	}
+	if err := ingRows.Err(); err != nil {
+		return nil, err
+	}
 
 	return &weapon, nil
 }
@@ -142,11 +160,16 @@ func (r *weaponRepository) CreateWeapon(req models.CreateWeaponRequest) (int, er
 	}
 	r.log.Debug("CreateWeapon: начинаю транзакцию создания оружия")
 
+	var err error
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
 
 	var newID int
 	err = tx.QueryRow(`

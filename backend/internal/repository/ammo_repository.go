@@ -23,7 +23,7 @@ func NewAmmoRepository(db *sql.DB, log *logger.Logger) AmmoRepository {
 
 func (r *ammoRepository) GetAmmoByID (id int) (*models.Ammo, error) {
     // 1. Получаем базовую информацию о патроне (убрали weapon_item_id из SELECT)
-    r.log.Info("GetAmmoByID: делаю запрос в таблицу ammo")
+    r.log.Debug("GetAmmoByID: делаю запрос в таблицу ammo")
     row := r.db.QueryRow(
         "SELECT id, name, icon FROM ammo WHERE id = $1",
         id,
@@ -39,10 +39,10 @@ func (r *ammoRepository) GetAmmoByID (id int) (*models.Ammo, error) {
     }
 
     // 2. Находим всё оружие через связующую таблицу weapon_ammo (Честный JOIN)
-    r.log.Info("GetAmmoByID: делаю запрос в таблицы weapon_item и weapon_ammo")
+    r.log.Debug("GetAmmoByID: делаю запрос в таблицы weapon_item и weapon_ammo")
     weaponRows, err := r.db.Query(`
         SELECT w.id, w.name, w.type, w.description, w.shortname, w.icon,
-               COALESCE(w.capacity, 0), COALESCE(w.time_to_craft, 0)
+               w.capacity, w.time_to_craft
         FROM weapon_item w
         JOIN weapon_ammo wa ON w.id = wa.weapon_item_id
         WHERE wa.ammo_id = $1`, 
@@ -53,17 +53,22 @@ func (r *ammoRepository) GetAmmoByID (id int) (*models.Ammo, error) {
     }
     defer weaponRows.Close()
 
-    // 3. Наполняем слайс внутри патрона
     for weaponRows.Next() {
         var weapon models.WeaponItem
+        var cap, ttc sql.NullInt64
         err := weaponRows.Scan(
             &weapon.ID, &weapon.Name, &weapon.Type, &weapon.Description,
-            &weapon.Shortname, &weapon.Icon, &weapon.Capacity, &weapon.TimeToCraft,
+            &weapon.Shortname, &weapon.Icon, &cap, &ttc,
         )
+        if cap.Valid { v := int(cap.Int64); weapon.Capacity = &v }
+        if ttc.Valid { v := int(ttc.Int64); weapon.TimeToCraft = &v }
         if err != nil {
             return nil, err
         }
-        ammo.CompatibleWeapons = append(ammo.CompatibleWeapons, weapon)
+		ammo.CompatibleWeapons = append(ammo.CompatibleWeapons, weapon)
+	}
+	if err := weaponRows.Err(); err != nil {
+		return nil, err
 	}
 	
 	return &ammo, nil
@@ -84,6 +89,9 @@ func (r *ammoRepository) GetAllAmmo() ([]models.Ammo, error) {
 			return nil, err
 		}
 		ammoList = append(ammoList, a)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return ammoList, nil

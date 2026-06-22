@@ -42,7 +42,7 @@ func (r *modRepository) GetModByID(id int) (*models.Mods, error) {
 	// Используем честный JOIN через таблицу weapon_mods
 	r.log.Debug("GetModByID: делаю запрос в таблицы weapon_item и weapon_mods")
 	weaponRows, err := r.db.Query(`
-		SELECT w.id, w.name, w.type, w.description, w.shortname, w.icon, COALESCE(w.capacity, 0), COALESCE(w.time_to_craft, 0)
+		SELECT w.id, w.name, w.type, w.description, w.shortname, w.icon, w.capacity, w.time_to_craft
 		FROM weapon_item w
 		JOIN weapon_mods wm ON w.id = wm.weapon_item_id
 		WHERE wm.mod_id = $1`,
@@ -53,10 +53,9 @@ func (r *modRepository) GetModByID(id int) (*models.Mods, error) {
 	}
 	defer weaponRows.Close()
 
-	// 3. Сканируем оружие в слайс CompatibleWeapons внутри модели модуля
-	// (Убедитесь, что в структуре models.Mods у вас есть поле CompatibleWeapons []WeaponItem или аналогичное)
 	for weaponRows.Next() {
 		var weapon models.WeaponItem
+		var cap, ttc sql.NullInt64
 		err := weaponRows.Scan(
 			&weapon.ID, 
 			&weapon.Name, 
@@ -64,13 +63,18 @@ func (r *modRepository) GetModByID(id int) (*models.Mods, error) {
 			&weapon.Description, 
 			&weapon.Shortname, 
 			&weapon.Icon, 
-			&weapon.Capacity, 
-			&weapon.TimeToCraft,
+			&cap, 
+			&ttc,
 		)
+		if cap.Valid { v := int(cap.Int64); weapon.Capacity = &v }
+		if ttc.Valid { v := int(ttc.Int64); weapon.TimeToCraft = &v }
 		if err != nil {
 			return nil, err
 		}
 		mod.CompatibleWeapons = append(mod.CompatibleWeapons, weapon)
+	}
+	if err := weaponRows.Err(); err != nil {
+		return nil, err
 	}
 
 	return &mod, nil
@@ -91,6 +95,9 @@ func (r *modRepository) GetAllMods() ([]models.Mods, error) {
 			return nil, err
 		}
 		modList = append(modList, m)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return modList, nil

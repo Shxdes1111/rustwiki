@@ -26,21 +26,20 @@ func (h *AmmoHandler) GetAmmo(w http.ResponseWriter, r *http.Request) {
 	// Извлекаем id из пути URL
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Invalid ammo ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid ammo ID")
 		return
 	}
 
-	// Запрашиваем данные у репозитория
 	ammo, err := h.repo.GetAmmoByID(id)
 	if err != nil {
 		h.Logger.Errorf("Database error while fetching ammo: %v", err)
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 
 	// Если патрон с таким id не найден
 	if ammo == nil {
-		http.Error(w, "Ammo not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "Ammo not found")
 		return
 	}
 
@@ -54,7 +53,7 @@ func (h *AmmoHandler) GetAmmoList(w http.ResponseWriter, r *http.Request) {
 	ammoList, err := h.repo.GetAllAmmo()
 	if err != nil {
 		h.Logger.Errorf("Database error while fetching ammo list: %v", err)
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 

@@ -23,7 +23,7 @@ func (h *IngredientHandler) GetIngredientList(w http.ResponseWriter, r *http.Req
 	ingredients, err := h.repo.GetAllIngredients()
 	if err != nil {
 		h.Logger.Errorf("Database error while fetching ingredient list: %v", err)
-		http.Error(w, "Database error", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 
