@@ -37,8 +37,7 @@ services:
       - DB_NAME=rustwiki
       - DB_SSL_MODE=disable
       - JWT_SECRET=rustwiki-secret-change-in-production
-      - PUBLIC_URL=${TUNNEL_URL}
-      # - PUBLIC_URL=http://localhost:8080
+      - PUBLIC_URL=http://localhost:8080
       
   frontend:
     build: ./frontend
@@ -51,8 +50,7 @@ services:
     environment:
       - API_PROXY=http://backend:8080
       - UPLOAD_PROXY=http://backend:8080
-      - VITE_API_BASE=${TUNNEL_URL}
-      # - VITE_API_BASE=http://localhost:5173
+      - VITE_API_BASE=https://97fcf7e10dcbb199-185-228-112-94.serveousercontent.com
 
   pgadmin:
     image: dpage/pgadmin4:latest
