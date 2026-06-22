@@ -37,8 +37,8 @@ services:
       - DB_NAME=rustwiki
       - DB_SSL_MODE=disable
       - JWT_SECRET=rustwiki-secret-change-in-production
-      # - PUBLIC_URL=https://hungry-rabbits-show.loca.lt
-      - PUBLIC_URL=http://localhost:8080
+      - PUBLIC_URL=${TUNNEL_URL}
+      # - PUBLIC_URL=http://localhost:8080
       
   frontend:
     build: ./frontend
@@ -51,6 +51,8 @@ services:
     environment:
       - API_PROXY=http://backend:8080
       - UPLOAD_PROXY=http://backend:8080
+      - VITE_API_BASE=${TUNNEL_URL}
+      # - VITE_API_BASE=
 
   pgadmin:
     image: dpage/pgadmin4:latest
