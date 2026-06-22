@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { reactive, ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { reactive, ref, onMounted, computed } from 'vue'
 import { useWeaponStore } from '../stores/weapons'
 import { useAuthStore } from '../stores/auth'
 import { useToast } from 'vue-toastification'
 
 const router = useRouter()
+const route = useRoute()
 const store = useWeaponStore()
 const authStore = useAuthStore()
 const toast = useToast()
+
+const suggestionId = ref<number | null>(route.query.edit ? Number(route.query.edit) : null)
+const isEditing = computed(() => suggestionId.value !== null)
+const loadingSuggestion = ref(false)
 
 const form = reactive({
   name: '',
@@ -68,10 +73,39 @@ const handleBlur = (id: number, raw: string, el?: HTMLInputElement) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (!store.ammoList.length) store.fetchAllAmmo()
   if (!store.modList.length) store.fetchAllMods()
   if (!store.ingredientList.length) store.fetchAllIngredients()
+
+  if (isEditing.value && suggestionId.value) {
+    loadingSuggestion.value = true
+    try {
+      const s = await store.fetchMySuggestion(suggestionId.value)
+      const p = s.payload
+      form.name = p.name || ''
+      form.type = p.type || 'range'
+      form.firemode = p.firemode || 'semi'
+      form.craftable = p.craftable ?? true
+      form.stacksize = p.stacksize ?? 1
+      form.description = p.description || ''
+      form.shortname = p.shortname || ''
+      form.icon = p.icon || ''
+      form.capacity = p.capacity ?? null
+      form.time_to_craft = p.time_to_craft ?? null
+      selectedAmmo.value = p.ammo_ids || []
+      selectedMods.value = p.mod_ids || []
+      selectedIngredients.value = (p.ingredients || []).map((i: any) => ({ id: i.id, amount: i.amount }))
+      if (p.icon) {
+        iconPreview.value = p.icon
+      }
+    } catch (err) {
+      toast.error(`Failed to load suggestion: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      router.push('/my/suggestions')
+    } finally {
+      loadingSuggestion.value = false
+    }
+  }
 })
 
 const handleFileSelect = (e: Event) => {
@@ -93,7 +127,7 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 const handleSubmit = async () => {
-  let icon = ''
+  let icon = form.icon || ''
   let iconBase64 = ''
 
   if (iconFile.value) {
@@ -123,7 +157,11 @@ const handleSubmit = async () => {
   }
 
   try {
-    if (authStore.isAdmin) {
+    if (isEditing.value && suggestionId.value) {
+      await store.resubmitSuggestion(suggestionId.value, payload)
+      toast.success('Suggestion resubmitted for review!')
+      router.push('/my/suggestions')
+    } else if (authStore.isAdmin) {
       const id = await store.createWeapon(payload)
       toast.success('Weapon created successfully!')
       await store.fetchWeapons()
@@ -142,9 +180,10 @@ const handleSubmit = async () => {
 <template>
   <div class="wiki-page">
     <button class="back-btn" @click="router.push('/')">← Back to list</button>
-    <h1 class="page-title">Create Weapon</h1>
+    <h1 class="page-title">{{ isEditing ? 'Edit Weapon' : 'Create Weapon' }}</h1>
 
-    <form @submit.prevent="handleSubmit" class="create-form">
+    <div v-if="loadingSuggestion" class="loading">Loading suggestion...</div>
+    <form v-else @submit.prevent="handleSubmit" class="create-form">
       <div class="form-group">
         <label for="name">Name</label>
         <input id="name" v-model="form.name" type="text" class="form-input" required />
@@ -221,13 +260,11 @@ const handleSubmit = async () => {
       <div class="form-group">
         <label>Ammunition</label>
         <div class="checkbox-grid">
-          <div v-for="a in store.ammoList" :key="a.id" class="checkbox-item">
-            <label class="checkbox-content">
-              <input type="checkbox" :value="a.id" v-model="selectedAmmo" />
-            </label>
+          <label v-for="a in store.ammoList" :key="a.id" class="checkbox-item">
+            <input type="checkbox" :value="a.id" v-model="selectedAmmo" />
             <span class="item-name">{{ a.name }}</span>
             <img v-if="a.icon" :src="a.icon" :alt="a.name" class="grid-icon" />
-          </div>
+          </label>
           <div v-if="!store.ammoList.length" class="empty-text">Loading...</div>
         </div>
       </div>
@@ -235,13 +272,11 @@ const handleSubmit = async () => {
       <div class="form-group">
         <label>Weapon Mods</label>
         <div class="checkbox-grid">
-          <div v-for="m in store.modList" :key="m.id" class="checkbox-item">
-            <label class="checkbox-content">
-              <input type="checkbox" :value="m.id" v-model="selectedMods" />
-            </label>
+          <label v-for="m in store.modList" :key="m.id" class="checkbox-item">
+            <input type="checkbox" :value="m.id" v-model="selectedMods" />
             <span class="item-name">{{ m.name }}</span>
             <img v-if="m.icon" :src="m.icon" :alt="m.name" class="grid-icon" />
-          </div>
+          </label>
           <div v-if="!store.modList.length" class="empty-text">Loading...</div>
         </div>
       </div>
@@ -249,12 +284,12 @@ const handleSubmit = async () => {
       <div class="form-group">
         <label>Ingredients</label>
         <div class="checkbox-grid">
-          <div v-for="ing in store.ingredientList" :key="ing.id" class="checkbox-item" :data-title="ing.name">
+          <div v-for="ing in store.ingredientList" :key="ing.id" class="checkbox-item" :data-title="ing.name" @click="toggleIngredient(ing.id)">
             <label class="checkbox-content">
               <input
                 type="checkbox"
                 :checked="isIngredientSelected(ing.id)"
-                @change="toggleIngredient(ing.id)"
+                @click.stop="toggleIngredient(ing.id)"
               />
             </label>
             <input
@@ -266,6 +301,7 @@ const handleSubmit = async () => {
               @input="setIngredientAmount(ing.id, ($event.target as HTMLInputElement).value, $event.target as HTMLInputElement)"
               @blur="handleBlur(ing.id, ($event.target as HTMLInputElement).value, $event.target as HTMLInputElement)"
               @keydown="preventNonDigit"
+              @click.stop
               :disabled="!isIngredientSelected(ing.id)"
             />
             <img v-if="ing.icon" :src="ing.icon" :alt="ing.name" class="grid-icon" />
@@ -309,7 +345,7 @@ const handleSubmit = async () => {
 .create-form {
   display: flex;
   flex-direction: column;
-  max-width: 500px;
+  max-width: 800px;
   margin: 0 auto;
 }
 
@@ -321,6 +357,21 @@ const handleSubmit = async () => {
 
 @media (max-width: 768px) {
   .form-row { flex-direction: column; }
+}
+
+@media (max-width: 480px) {
+  .checkbox-grid {
+    display: flex;
+    flex-direction: column;
+  }
+  .checkbox-item.checkbox-item {
+    padding: 10px 12px;
+    min-height: 56px;
+  }
+  .icon-upload-area {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .form-row .form-group {
@@ -382,28 +433,27 @@ textarea.form-input {
 
 .checkbox-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 4px;
   padding: 10px;
   background-color: #2a2a2a;
   border-radius: 4px;
 }
 
-.checkbox-item {
-  position: relative;
-  display: flex;
+.checkbox-item.checkbox-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
+  gap: 10px;
+  padding: 6px 10px;
+  min-height: 50px;
   background: #464646;
   border: 1px solid #5d5d5d;
   border-radius: 4px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   transition: background-color 0.2s;
-}
-
-.checkbox-item:hover {
-  background: #5a5a5a;
+  overflow: hidden;
+  cursor: pointer;
 }
 
 .checkbox-item[data-title]:hover::after {
@@ -428,13 +478,6 @@ textarea.form-input {
   justify-content: center;
   width: 18px;
   height: 18px;
-  cursor: pointer;
-}
-
-.item-name {
-  text-align: center;
-  flex: 1.5;
-  min-width: 0;
 }
 
 .checkbox-item input[type="checkbox"] {
@@ -531,5 +574,12 @@ textarea.form-input {
 .icon-placeholder {
   font-size: 0.85rem;
   color: #64748b;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+  font-size: 1.1rem;
 }
 </style>

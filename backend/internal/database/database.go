@@ -27,7 +27,8 @@ func AutoMigrate(db *sql.DB, log *logger.Logger) error {
 			status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
 			created_at TIMESTAMP DEFAULT NOW(),
 			reviewed_at TIMESTAMP,
-			reviewed_by INTEGER REFERENCES users(id)
+			reviewed_by INTEGER REFERENCES users(id),
+			rejection_reason TEXT
 		)`,
 	}
 
@@ -35,6 +36,17 @@ func AutoMigrate(db *sql.DB, log *logger.Logger) error {
 		if _, err := db.Exec(m); err != nil {
 			return fmt.Errorf("auto-migrate: %w", err)
 		}
+	}
+
+	if _, err := db.Exec(`ALTER TABLE weapon_suggestions ADD COLUMN IF NOT EXISTS rejection_reason TEXT`); err != nil {
+		return fmt.Errorf("auto-migrate add rejection_reason: %w", err)
+	}
+
+	if _, err := db.Exec(`ALTER TABLE weapon_item ADD COLUMN IF NOT EXISTS views INTEGER NOT NULL DEFAULT 0`); err != nil {
+		return fmt.Errorf("auto-migrate add views: %w", err)
+	}
+	if _, err := db.Exec(`ALTER TABLE weapon_item ADD COLUMN IF NOT EXISTS created_by INTEGER REFERENCES users(id)`); err != nil {
+		return fmt.Errorf("auto-migrate add created_by: %w", err)
 	}
 
 	log.Info("Auto-migration completed")

@@ -2,20 +2,23 @@ package models
 
 type WeaponItem struct {
 	ID          int            `json:"id"`
-	Name       string        `json:"name"`
-	Type       string        `json:"type"`
-	Firemode   string        `json:"firemode"`
-	Craftable  bool          `json:"craftable"`
-	Stacksize  int           `json:"stacksize"`
-	Description string       `json:"description,omitempty"`
-	Shortname  string        `json:"shortname,omitempty"`
-	Icon       *string       `json:"icon,omitempty"`
-	Capacity   *int          `json:"capacity,omitempty"`
-	TimeToCraft *int         `json:"time_to_craft,omitempty"`
-	CategoryID *int          `json:"category_id,omitempty"`
-	Ammo       []Ammo        `json:"ammo,omitempty"`
-	Mods       []Mods        `json:"mods,omitempty"`
-	Ingredients []Ingredients `json:"ingredients,omitempty"`
+	Name        string         `json:"name"`
+	Type        string         `json:"type"`
+	Firemode    string         `json:"firemode"`
+	Craftable   bool           `json:"craftable"`
+	Stacksize   int            `json:"stacksize"`
+	Description string         `json:"description,omitempty"`
+	Shortname   string         `json:"shortname,omitempty"`
+	Icon        *string        `json:"icon,omitempty"`
+	Capacity    *int           `json:"capacity,omitempty"`
+	TimeToCraft *int           `json:"time_to_craft,omitempty"`
+	CategoryID  *int           `json:"category_id,omitempty"`
+	Ammo        []Ammo         `json:"ammo,omitempty"`
+	Mods        []Mods         `json:"mods,omitempty"`
+	Ingredients []Ingredients  `json:"ingredients,omitempty"`
+	Views       int            `json:"views"`
+	CreatedBy   *int           `json:"created_by,omitempty"`
+	AuthorName  string         `json:"author_name,omitempty"`
 }
 
 type Ammo struct {
@@ -49,6 +52,7 @@ type CreateWeaponRequest struct {
 	AmmoIDs     []int               `json:"ammo_ids"`
 	ModIDs      []int               `json:"mod_ids"`
 	Ingredients []IngredientRequest `json:"ingredients"`
+	CreatedBy   *int                `json:"created_by,omitempty"`
 }
 
 type IngredientRequest struct {

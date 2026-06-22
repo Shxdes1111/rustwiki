@@ -16,6 +16,7 @@ type WeaponRepository interface {
 	GetWeaponByID(id int) (*models.WeaponItem, error)
 	CreateWeapon(req models.CreateWeaponRequest) (int, error)
 	DeleteWeapon(id int) error
+	FindByUserID(userID int) ([]models.WeaponItem, error)
 }
 
 type weaponRepository struct {
@@ -56,22 +57,45 @@ func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
 
 func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 	r.log.Debug("GetWeaponByID: делаю запрос в таблицу weapon_item")
-	row := r.db.QueryRow(
-		"SELECT id, name, type, firemode, craftable, stacksize, description, shortname, icon, capacity, time_to_craft, category_id FROM weapon_item WHERE id = $1",
-		id,
-	)
 
 	var weapon models.WeaponItem
 	var cap, ttc sql.NullInt64
-	err := row.Scan(&weapon.ID, &weapon.Name, &weapon.Type, &weapon.Firemode, &weapon.Craftable, &weapon.Stacksize, &weapon.Description, &weapon.Shortname, &weapon.Icon, &cap, &ttc, &weapon.CategoryID)
-	if cap.Valid { v := int(cap.Int64); weapon.Capacity = &v }
-	if ttc.Valid { v := int(ttc.Int64); weapon.TimeToCraft = &v }
+	var createdBy sql.NullInt64
+	err := r.db.QueryRow(`
+		SELECT w.id, w.name, w.type, w.firemode, w.craftable, w.stacksize,
+		       w.description, w.shortname, w.icon, w.capacity, w.time_to_craft,
+		       w.category_id, w.views, w.created_by, COALESCE(u.username, '')
+		FROM weapon_item w
+		LEFT JOIN users u ON w.created_by = u.id
+		WHERE w.id = $1`,
+		id,
+	).Scan(&weapon.ID, &weapon.Name, &weapon.Type, &weapon.Firemode, &weapon.Craftable,
+		&weapon.Stacksize, &weapon.Description, &weapon.Shortname, &weapon.Icon,
+		&cap, &ttc, &weapon.CategoryID, &weapon.Views, &createdBy, &weapon.AuthorName)
+	if cap.Valid {
+		v := int(cap.Int64)
+		weapon.Capacity = &v
+	}
+	if ttc.Valid {
+		v := int(ttc.Int64)
+		weapon.TimeToCraft = &v
+	}
+	if createdBy.Valid {
+		v := int(createdBy.Int64)
+		weapon.CreatedBy = &v
+	}
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
 	}
+
+	// increment views
+	if _, err := r.db.Exec(`UPDATE weapon_item SET views = views + 1 WHERE id = $1`, id); err != nil {
+		r.log.Warnf("GetWeaponByID: failed to increment views: %v", err)
+	}
+	weapon.Views++
 
 	// ammo
 	r.log.Debug("GetWeaponByID: делаю запрос в таблицы ammo и weapon_ammo")
@@ -173,11 +197,12 @@ func (r *weaponRepository) CreateWeapon(req models.CreateWeaponRequest) (int, er
 
 	var newID int
 	err = tx.QueryRow(`
-		INSERT INTO weapon_item (name, type, firemode, craftable, stacksize, description, shortname, icon, capacity, time_to_craft, category_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		INSERT INTO weapon_item (name, type, firemode, craftable, stacksize, description, shortname, icon, capacity, time_to_craft, category_id, created_by)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		RETURNING id`,
 		req.Name, req.Type, req.Firemode, req.Craftable, req.Stacksize,
 		req.Description, req.Shortname, req.Icon, req.Capacity, req.TimeToCraft, req.CategoryID,
+		req.CreatedBy,
 	).Scan(&newID)
 	if err != nil {
 		return 0, err
@@ -207,6 +232,53 @@ func (r *weaponRepository) CreateWeapon(req models.CreateWeaponRequest) (int, er
 
 	r.log.Debugf("CreateWeapon: оружие создано с id=%d", newID)
 	return newID, nil
+}
+
+func (r *weaponRepository) FindByUserID(userID int) ([]models.WeaponItem, error) {
+	rows, err := r.db.Query(`
+		SELECT w.id, w.name, w.type, w.firemode, w.craftable, w.stacksize,
+		       w.description, w.shortname, w.icon, w.capacity, w.time_to_craft,
+		       w.category_id, w.views, w.created_by, COALESCE(u.username, '')
+		FROM weapon_item w
+		LEFT JOIN users u ON w.created_by = u.id
+		WHERE w.created_by = $1
+		ORDER BY w.id ASC`,
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var weapons []models.WeaponItem
+	for rows.Next() {
+		var weapon models.WeaponItem
+		var cap, ttc sql.NullInt64
+		var createdBy sql.NullInt64
+		if err := rows.Scan(&weapon.ID, &weapon.Name, &weapon.Type, &weapon.Firemode,
+			&weapon.Craftable, &weapon.Stacksize, &weapon.Description, &weapon.Shortname,
+			&weapon.Icon, &cap, &ttc, &weapon.CategoryID, &weapon.Views, &createdBy,
+			&weapon.AuthorName); err != nil {
+			return nil, err
+		}
+		if cap.Valid {
+			v := int(cap.Int64)
+			weapon.Capacity = &v
+		}
+		if ttc.Valid {
+			v := int(ttc.Int64)
+			weapon.TimeToCraft = &v
+		}
+		if createdBy.Valid {
+			v := int(createdBy.Int64)
+			weapon.CreatedBy = &v
+		}
+		weapons = append(weapons, weapon)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return weapons, nil
 }
 
 func (r *weaponRepository) DeleteWeapon(id int) error {

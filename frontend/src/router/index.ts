@@ -6,6 +6,9 @@ import AmmoDetails from '../components/AmmoDetails.vue'
 import ModDetails from '../components/ModDetails.vue'
 import SuggestionList from '../components/SuggestionList.vue'
 import SuggestionDetails from '../components/SuggestionDetails.vue'
+import MySuggestions from '../components/MySuggestions.vue'
+import MySuggestionDetails from '../components/MySuggestionDetails.vue'
+import MyWeapons from '../components/MyWeapons.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -48,6 +51,22 @@ const router = createRouter({
       name: 'suggestion-details',
       component: SuggestionDetails,
       props: true
+    },
+    {
+      path: '/my/suggestions',
+      name: 'my-suggestions',
+      component: MySuggestions
+    },
+    {
+      path: '/my/suggestions/:id',
+      name: 'my-suggestion-details',
+      component: MySuggestionDetails,
+      props: true
+    },
+    {
+      path: '/my/weapons',
+      name: 'my-weapons',
+      component: MyWeapons
     }
   ]
 })

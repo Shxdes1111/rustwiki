@@ -71,7 +71,7 @@ h1, h2, h3 {
 #app {
   max-width: 1200px;
   width: 100%;
-  min-height: 100vh;
+  min-height: 1500px;
   margin: 0 auto;
   padding: 1rem;
   font-weight: normal;

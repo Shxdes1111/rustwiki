@@ -50,9 +50,6 @@ onUnmounted(() => {
     <div class="header">
       <h1>RustWiki Weapons</h1>
       <div class="header-right">
-        <button v-if="authStore.isAdmin" class="admin-btn" @click="router.push('/admin/suggestions')">
-          Pending
-        </button>
         <template v-if="authStore.isAuthenticated">
           <div ref="dropdownRef" class="user-menu">
             <button class="user-avatar" @click="toggleDropdown">
@@ -62,6 +59,10 @@ onUnmounted(() => {
             <div v-if="dropdownOpen" class="dropdown">
               <div class="dropdown-item username">{{ authStore.user?.username }}</div>
               <div class="dropdown-item role">Role: {{ authStore.role }}</div>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item nav-btn" @click="router.push('/my/weapons'); dropdownOpen = false">My Articles</button>
+              <button v-if="authStore.isAdmin" class="dropdown-item nav-btn" @click="router.push('/admin/suggestions'); dropdownOpen = false">Pending Suggestions</button>
+              <button v-else class="dropdown-item nav-btn" @click="router.push('/my/suggestions'); dropdownOpen = false">My Suggestions</button>
               <div class="dropdown-divider"></div>
               <button class="dropdown-item logout-btn" @click="handleLogout">Logout</button>
             </div>
@@ -132,22 +133,6 @@ onUnmounted(() => {
   background: #a8321f;
 }
 
-.admin-btn {
-  height: 35px;
-  padding: 0 16px;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.2s;
-}
-
-.admin-btn:hover {
-  background: #1d4ed8;
-}
-
 .user-menu {
   position: relative;
   display: inline-block;
@@ -185,7 +170,7 @@ onUnmounted(() => {
   background: #1a1a1a;
   border: 1px solid #333;
   border-radius: 8px;
-  min-width: 180px;
+  min-width: 200px;
   z-index: 100;
   overflow: hidden;
 }
@@ -209,6 +194,21 @@ onUnmounted(() => {
   height: 1px;
   background: #333;
   margin: 4px 0;
+}
+
+.nav-btn {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: #e2e8f0;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.nav-btn:hover {
+  background: #222;
 }
 
 .logout-btn {

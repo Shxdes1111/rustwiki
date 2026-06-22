@@ -24,6 +24,8 @@ onMounted(async () => {
     <!-- Кнопка Назад -->
     <button class="back-btn" @click="router.push('/')">← Back to list</button>
 
+    <p v-if="weapon.author_name" class="created-by">Created by {{ weapon.author_name }}</p>
+
     <div class="wiki-layout">
       <!-- ЛЕВАЯ КОЛОНКА: Описание и крафт -->
       <div class="main-content">
@@ -42,6 +44,8 @@ onMounted(async () => {
             </li>
           </ul>
         </div>
+
+        <p class="views-count">👁 {{ weapon.views ?? 0 }} views</p>
       </div>
 
       <!-- ПРАВАЯ КОЛОНКА: Инфобокс (Карточка характеристик) -->
@@ -59,6 +63,7 @@ onMounted(async () => {
         <div class="infobox-row"><span>Shortname</span><span class="value">{{ weapon.shortname || 'N/A' }}</span></div>
         <div class="infobox-row"><span>Type</span><span class="value">{{ weapon.type }}</span></div>
         <div class="infobox-row"><span>Stacksize</span><span class="value">{{ weapon.stacksize }}</span></div>
+    
 
         <!-- Раздел: Weapon Stats -->
         <div class="infobox-section-title">Weapon Stats</div>
@@ -153,6 +158,12 @@ onMounted(async () => {
   min-width: 280px;
 }
 
+.created-by {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 0 0 4px 0;
+}
+
 .page-title {
   font-size: 2.5rem;
   border-bottom: 1px solid #5d5d5d;
@@ -161,6 +172,12 @@ onMounted(async () => {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.views-count {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-top: 32px;
 }
 
 .description-text {

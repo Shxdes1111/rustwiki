@@ -56,6 +56,7 @@ func main() {
 	// Public routes
 	http.HandleFunc("GET /api/weapons", weaponHandler.GetWeapons)
 	http.HandleFunc("GET /api/weapons/{id}", weaponHandler.GetWeapon)
+	http.HandleFunc("GET /api/my-weapons", auth.Authenticate(weaponHandler.ListMyWeapons))
 	http.HandleFunc("GET /api/mods", modHandler.GetModList)
 	http.HandleFunc("GET /api/mods/{id}", modHandler.GetMod)
 	http.HandleFunc("GET /api/ammo", ammoHandler.GetAmmoList)
@@ -71,6 +72,9 @@ func main() {
 	http.HandleFunc("POST /api/suggestions", auth.Authenticate(suggestionHandler.Create))
 	http.HandleFunc("GET /api/suggestions", auth.Authenticate(auth.RequireRole(suggestionHandler.List, "admin")))
 	http.HandleFunc("GET /api/suggestions/{id}", auth.Authenticate(auth.RequireRole(suggestionHandler.Get, "admin")))
+	http.HandleFunc("GET /api/suggestions/my", auth.Authenticate(suggestionHandler.ListMy))
+	http.HandleFunc("GET /api/suggestions/my/{id}", auth.Authenticate(suggestionHandler.GetMy))
+	http.HandleFunc("PUT /api/suggestions/{id}/resubmit", auth.Authenticate(suggestionHandler.Resubmit))
 	http.HandleFunc("PUT /api/suggestions/{id}/approve", auth.Authenticate(auth.RequireRole(suggestionHandler.Approve, "admin")))
 	http.HandleFunc("PUT /api/suggestions/{id}/reject", auth.Authenticate(auth.RequireRole(suggestionHandler.Reject, "admin")))
 	http.HandleFunc("DELETE /api/suggestions/{id}", auth.Authenticate(auth.RequireRole(suggestionHandler.Delete, "admin")))

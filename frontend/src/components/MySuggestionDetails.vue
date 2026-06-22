@@ -16,7 +16,7 @@ const loading = ref(false)
 onMounted(async () => {
   loading.value = true
   try {
-    suggestion.value = await store.fetchSuggestion(Number(props.id))
+    suggestion.value = await store.fetchMySuggestion(Number(props.id))
     if (!store.ammoList.length) await store.fetchAllAmmo()
     if (!store.modList.length) await store.fetchAllMods()
     if (!store.ingredientList.length) await store.fetchAllIngredients()
@@ -48,34 +48,14 @@ const ingredientItems = computed(() =>
   })
 )
 
-const handleApprove = async () => {
-  if (!confirm('Approve this suggestion? The weapon will be created.')) return
-  try {
-    await store.approveSuggestion(Number(props.id))
-    toast.success('Suggestion approved!')
-    await store.fetchWeapons()
-    router.push('/admin/suggestions')
-  } catch (err) {
-    toast.error(`Failed to approve: ${err instanceof Error ? err.message : 'Unknown error'}`)
-  }
-}
-
-const handleReject = async () => {
-  const reason = prompt('Reason for rejection:')
-  if (reason === null) return
-  try {
-    await store.rejectSuggestion(Number(props.id), reason)
-    toast.success('Suggestion rejected')
-    router.push('/admin/suggestions')
-  } catch (err) {
-    toast.error(`Failed to reject: ${err instanceof Error ? err.message : 'Unknown error'}`)
-  }
+const goToEdit = () => {
+  router.push(`/weapon/create?edit=${props.id}`)
 }
 </script>
 
 <template>
   <div class="page">
-    <button class="back-btn" @click="router.push('/admin/suggestions')">← Back to suggestions</button>
+    <button class="back-btn" @click="router.push('/my/suggestions')">← Back to my suggestions</button>
 
     <div v-if="loading" class="loading">Loading...</div>
     <div v-else-if="!suggestion" class="loading">Suggestion not found.</div>
@@ -84,12 +64,12 @@ const handleReject = async () => {
 
       <div class="meta-bar">
         <span :class="['badge', `badge-${suggestion.status}`]">{{ suggestion.status }}</span>
-        <span class="meta">by {{ suggestion.username || `User #${suggestion.user_id}` }}</span>
         <span class="meta">{{ new Date(suggestion.created_at).toLocaleString() }}</span>
         <span v-if="suggestion.reviewed_at" class="meta">Reviewed: {{ new Date(suggestion.reviewed_at).toLocaleString() }}</span>
-        <div v-if="suggestion.rejection_reason" class="rejection-reason">
-          <strong>Rejection reason:</strong> {{ suggestion.rejection_reason }}
-        </div>
+      </div>
+
+      <div v-if="suggestion.status === 'rejected' && suggestion.rejection_reason" class="rejection-reason">
+        <strong>Rejection reason:</strong> {{ suggestion.rejection_reason }}
       </div>
 
       <div class="details-grid">
@@ -137,9 +117,8 @@ const handleReject = async () => {
         </div>
       </div>
 
-      <div v-if="suggestion.status === 'pending'" class="actions-bar">
-        <button class="btn-approve" @click="handleApprove">Approve</button>
-        <button class="btn-reject" @click="handleReject">Reject</button>
+      <div v-if="suggestion.status === 'rejected'" class="actions-bar">
+        <button class="btn-edit" @click="goToEdit">Edit and resubmit</button>
       </div>
     </template>
   </div>
@@ -208,13 +187,13 @@ const handleReject = async () => {
 
 .rejection-reason {
   width: 100%;
-  margin-top: 8px;
-  padding: 10px 14px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
   background: #3b0f0f;
   border: 1px solid #991b1b;
   border-radius: 6px;
   color: #fecaca;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   line-height: 1.4;
 }
 
@@ -293,8 +272,8 @@ li {
   border-top: 1px solid #333;
 }
 
-.btn-approve {
-  background: #16a34a;
+.btn-edit {
+  background: #2563eb;
   color: white;
   border: none;
   padding: 10px 24px;
@@ -304,18 +283,5 @@ li {
   transition: background 0.2s;
 }
 
-.btn-approve:hover { background: #15803d; }
-
-.btn-reject {
-  background: #dc2626;
-  color: white;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.2s;
-}
-
-.btn-reject:hover { background: #b91c1c; }
+.btn-edit:hover { background: #1d4ed8; }
 </style>

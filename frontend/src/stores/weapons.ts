@@ -38,6 +38,7 @@ export interface Suggestion {
   created_at: string
   reviewed_at?: string
   reviewed_by?: number
+  rejection_reason?: string
 }
 
 export interface WeaponItem {
@@ -52,6 +53,9 @@ export interface WeaponItem {
   capacity?: number;  
   craftable: boolean;
   timeToCraft?: number; 
+  views?: number;
+  created_by?: number;
+  author_name?: string;
   
   ingredients?: Ingredient[];
   ammo?: Ammo[];
@@ -82,6 +86,14 @@ export const useWeaponStore = defineStore('weapons', () => {
   async function fetchWeapons() {
     const res = await fetch(`${API_BASE}/api/weapons`)
     weapons.value = await res.json()
+  }
+
+  async function fetchMyWeapons(): Promise<WeaponItem[]> {
+    const res = await fetch(`${API_BASE}/api/my-weapons`, {
+      headers: authHeaders(),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
   }
 
   async function fetchAllAmmo() {
@@ -231,6 +243,14 @@ export const useWeaponStore = defineStore('weapons', () => {
     return await res.json()
   }
 
+  async function fetchMySuggestion(id: number): Promise<Suggestion> {
+    const res = await fetch(`${API_BASE}/api/suggestions/my/${id}`, {
+      headers: authHeaders(),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  }
+
   async function approveSuggestion(id: number) {
     const res = await fetch(`${API_BASE}/api/suggestions/${id}/approve`, {
       method: 'PUT',
@@ -243,10 +263,15 @@ export const useWeaponStore = defineStore('weapons', () => {
     return await res.json()
   }
 
-  async function rejectSuggestion(id: number) {
+  async function rejectSuggestion(id: number, reason?: string) {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+    }
     const res = await fetch(`${API_BASE}/api/suggestions/${id}/reject`, {
       method: 'PUT',
-      headers: authHeaders(),
+      headers,
+      body: JSON.stringify({ reason }),
     })
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
@@ -266,5 +291,30 @@ export const useWeaponStore = defineStore('weapons', () => {
     }
   }
 
-  return { weapons, searchTerm, ammoList, modList, ingredientList, filteredWeapons, fetchWeapons, fetchAllAmmo, fetchAllMods, fetchAllIngredients, fetchWeapon, fetchAmmo, fetchMod, createWeapon, uploadIcon, deleteWeapon, suggestionCache, createSuggestion, fetchSuggestions, fetchSuggestion, approveSuggestion, rejectSuggestion, deleteSuggestion }
+  async function fetchMySuggestions(): Promise<Suggestion[]> {
+    const res = await fetch(`${API_BASE}/api/suggestions/my`, {
+      headers: authHeaders(),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  }
+
+  async function resubmitSuggestion(id: number, data: any): Promise<Suggestion> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+    }
+    const res = await fetch(`${API_BASE}/api/suggestions/${id}/resubmit`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || `HTTP ${res.status}`)
+    }
+    return await res.json()
+  }
+
+  return { weapons, searchTerm, ammoList, modList, ingredientList, filteredWeapons, fetchWeapons, fetchMyWeapons, fetchAllAmmo, fetchAllMods, fetchAllIngredients, fetchWeapon, fetchAmmo, fetchMod, createWeapon, uploadIcon, deleteWeapon, suggestionCache, createSuggestion, fetchSuggestions, fetchSuggestion, fetchMySuggestion, approveSuggestion, rejectSuggestion, deleteSuggestion, fetchMySuggestions, resubmitSuggestion }
 })

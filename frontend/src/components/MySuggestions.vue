@@ -2,12 +2,10 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useWeaponStore } from '../stores/weapons'
-import { useAuthStore } from '../stores/auth'
 import { useToast } from 'vue-toastification'
 
 const router = useRouter()
 const store = useWeaponStore()
-const authStore = useAuthStore()
 const toast = useToast()
 
 const suggestions = ref<any[]>([])
@@ -22,7 +20,7 @@ onMounted(async () => {
   window.addEventListener('resize', checkWidth)
   loading.value = true
   try {
-    suggestions.value = await store.fetchSuggestions()
+    suggestions.value = await store.fetchMySuggestions()
   } catch (err) {
     toast.error(`Failed to load suggestions: ${err instanceof Error ? err.message : 'Unknown error'}`)
   } finally {
@@ -35,97 +33,63 @@ onUnmounted(() => {
 })
 
 const goToDetails = (id: number) => {
-  router.push(`/admin/suggestions/${id}`)
+  router.push(`/my/suggestions/${id}`)
 }
 
-const handleApprove = async (id: number) => {
-  if (!confirm('Approve this suggestion? The weapon will be created.')) return
-  try {
-    await store.approveSuggestion(id)
-    toast.success('Suggestion approved!')
-    suggestions.value = await store.fetchSuggestions()
-    await store.fetchWeapons()
-  } catch (err) {
-    toast.error(`Failed to approve: ${err instanceof Error ? err.message : 'Unknown error'}`)
-  }
-}
-
-const handleReject = async (id: number) => {
-  const reason = prompt('Reason for rejection:')
-  if (reason === null) return
-  try {
-    await store.rejectSuggestion(id, reason)
-    toast.success('Suggestion rejected')
-    suggestions.value = await store.fetchSuggestions()
-  } catch (err) {
-    toast.error(`Failed to reject: ${err instanceof Error ? err.message : 'Unknown error'}`)
-  }
-}
-
-const handleDelete = async (id: number) => {
-  if (!confirm('Delete this suggestion?')) return
-  try {
-    await store.deleteSuggestion(id)
-    toast.success('Suggestion deleted')
-    suggestions.value = await store.fetchSuggestions()
-  } catch (err) {
-    toast.error(`Failed to delete: ${err instanceof Error ? err.message : 'Unknown error'}`)
-  }
+const goToEdit = (id: number) => {
+  router.push(`/weapon/create?edit=${id}`)
 }
 </script>
 
 <template>
   <div class="page">
     <button class="back-btn" @click="router.push('/')">← Back to list</button>
-    <h1 class="page-title">Suggestion Requests</h1>
+    <h1 class="page-title">My Suggestions</h1>
 
     <div v-if="loading" class="loading">Loading...</div>
-    <div v-else-if="!suggestions.length" class="empty">No suggestions yet.</div>
+    <div v-else-if="!suggestions.length" class="empty">You haven't submitted any suggestions yet.</div>
 
-    <!-- Desktop: таблица -->
     <table v-show="!isMobile" v-else class="suggestion-table">
       <thead>
         <tr>
           <th>№</th>
-          <th>Author</th>
           <th>Weapon</th>
           <th>Status</th>
           <th>Created</th>
+          <th>Rejection reason</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="(s, index) in suggestions" :key="s.id" class="suggestion-row" @click="goToDetails(s.id)">
           <td>{{ index + 1 }}</td>
-          <td>{{ s.username || `User #${s.user_id}` }}</td>
           <td>{{ s.payload?.name || 'Unknown' }}</td>
           <td><span :class="['badge', `badge-${s.status}`]">{{ s.status }}</span></td>
           <td>{{ new Date(s.created_at).toLocaleDateString() }}</td>
+          <td class="reason-cell">{{ s.status === 'rejected' ? (s.rejection_reason || '—') : '—' }}</td>
           <td class="actions-cell" @click.stop>
-            <button v-if="s.status === 'pending'" class="btn-approve" @click="handleApprove(s.id)">Approve</button>
-            <button v-if="s.status === 'pending'" class="btn-reject" @click="handleReject(s.id)">Reject</button>
-            <button v-if="authStore.isAdmin && s.status !== 'pending'" class="delete-btn" @click="handleDelete(s.id)">×</button>
+            <button v-if="s.status === 'rejected'" class="btn-edit" @click="goToEdit(s.id)">Edit</button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Mobile: карточки -->
     <div v-show="isMobile" class="card-list">
       <div v-for="(s, index) in suggestions" :key="s.id" class="suggestion-card" @click="goToDetails(s.id)">
         <div class="card-header">
           <span class="card-id">#{{ index + 1 }}</span>
           <span :class="['badge', `badge-${s.status}`]">{{ s.status }}</span>
-          <button v-if="authStore.isAdmin && s.status !== 'pending'" class="delete-btn" @click.stop="handleDelete(s.id)">×</button>
         </div>
         <div class="card-body">
           <div class="card-row"><span class="card-label">Weapon</span><span class="card-value">{{ s.payload?.name || 'Unknown' }}</span></div>
-          <div class="card-row"><span class="card-label">Author</span><span class="card-value">{{ s.username || `User #${s.user_id}` }}</span></div>
           <div class="card-row"><span class="card-label">Created</span><span class="card-value">{{ new Date(s.created_at).toLocaleDateString() }}</span></div>
+          <div v-if="s.status === 'rejected'" class="card-row">
+            <span class="card-label">Reason</span>
+            <span class="card-value reason-text">{{ s.rejection_reason || '—' }}</span>
+          </div>
         </div>
-        <div v-if="s.status === 'pending'" class="card-actions" @click.stop>
-          <button class="btn-approve" @click="handleApprove(s.id)">Approve</button>
-          <button class="btn-reject" @click="handleReject(s.id)">Reject</button>
+        <div v-if="s.status === 'rejected'" class="card-actions" @click.stop>
+          <button class="btn-edit" @click="goToEdit(s.id)">Edit</button>
         </div>
       </div>
     </div>
@@ -185,12 +149,20 @@ th, td {
   border-bottom: 1px solid #333;
 }
 
-td:nth-child(2),
-td:nth-child(3) {
+td:nth-child(2) {
   max-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.reason-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #fecaca;
+  font-size: 0.85rem;
 }
 
 .suggestion-row {
@@ -228,22 +200,8 @@ td:nth-child(3) {
   white-space: nowrap;
 }
 
-.btn-approve {
-  background: #16a34a;
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  margin-right: 6px;
-  transition: background 0.2s;
-}
-
-.btn-approve:hover { background: #15803d; }
-
-.btn-reject {
-  background: #dc2626;
+.btn-edit {
+  background: #2563eb;
   color: white;
   border: none;
   padding: 6px 14px;
@@ -253,7 +211,7 @@ td:nth-child(3) {
   transition: background 0.2s;
 }
 
-.btn-reject:hover { background: #b91c1c; }
+.btn-edit:hover { background: #1d4ed8; }
 
 .card-list {
   display: flex;
@@ -313,32 +271,19 @@ td:nth-child(3) {
   max-width: 60%;
 }
 
+.reason-text {
+  color: #fecaca;
+}
+
 .card-actions {
   display: flex;
   gap: 8px;
   justify-content: stretch;
 }
 
-.card-actions .btn-approve,
-.card-actions .btn-reject {
+.card-actions .btn-edit {
   flex: 1;
   text-align: center;
   padding: 8px;
-}
-
-.delete-btn {
-  background: none;
-  border: none;
-  color: #ef4444;
-  font-size: 1.3rem;
-  cursor: pointer;
-  padding: 4px 8px;
-  margin-left: 6px;
-  transition: color 0.2s;
-  line-height: 1;
-}
-
-.delete-btn:hover {
-  color: #dc2626;
 }
 </style>

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"backend/internal/logger"
+	"backend/internal/middleware"
 	"backend/internal/models"
 	"backend/internal/repository"
 )
@@ -64,6 +65,11 @@ func (h *WeaponHandler) CreateWeapon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	claims := middleware.GetUserClaims(r)
+	if claims != nil {
+		req.CreatedBy = &claims.UserID
+	}
+
 	id, err := h.weaponRepo.CreateWeapon(req)
 	if err != nil {
 		h.Logger.Errorf("CreateWeapon: %v", err)
@@ -92,4 +98,27 @@ func (h *WeaponHandler) DeleteWeapon(w http.ResponseWriter, r *http.Request) {
 	h.Logger.WithField("weapon_id", id).Info("weapon deleted")
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *WeaponHandler) ListMyWeapons(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	claims := middleware.GetUserClaims(r)
+	if claims == nil {
+		writeError(w, http.StatusUnauthorized, "Not authenticated")
+		return
+	}
+
+	weapons, err := h.weaponRepo.FindByUserID(claims.UserID)
+	if err != nil {
+		h.Logger.Errorf("ListMyWeapons: %v", err)
+		writeError(w, http.StatusInternalServerError, "Database error")
+		return
+	}
+
+	if weapons == nil {
+		weapons = []models.WeaponItem{}
+	}
+
+	json.NewEncoder(w).Encode(weapons)
 }
