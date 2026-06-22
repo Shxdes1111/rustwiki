@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"strings"
 
+	"backend/internal/logger"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/sirupsen/logrus"
 )
 
 type contextKey string
@@ -22,22 +24,31 @@ type UserClaims struct {
 
 type AuthMiddleware struct {
 	JWTSecret string
+	Logger    *logger.Logger
 }
 
-func NewAuthMiddleware(jwtSecret string) *AuthMiddleware {
-	return &AuthMiddleware{JWTSecret: jwtSecret}
+func NewAuthMiddleware(jwtSecret string, log *logger.Logger) *AuthMiddleware {
+	return &AuthMiddleware{JWTSecret: jwtSecret, Logger: log}
 }
 
 func (m *AuthMiddleware) Authenticate(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
+			m.Logger.WithFields(logrus.Fields{
+				"ip":   r.RemoteAddr,
+				"path": r.URL.Path,
+			}).Warn("missing auth header")
 			writeError(w, "Missing authorization header", http.StatusUnauthorized)
 			return
 		}
 
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+			m.Logger.WithFields(logrus.Fields{
+				"ip":   r.RemoteAddr,
+				"path": r.URL.Path,
+			}).Warn("invalid auth header format")
 			writeError(w, "Invalid authorization header format", http.StatusUnauthorized)
 			return
 		}
@@ -53,6 +64,11 @@ func (m *AuthMiddleware) Authenticate(next http.HandlerFunc) http.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
+			m.Logger.WithFields(logrus.Fields{
+				"ip":   r.RemoteAddr,
+				"path": r.URL.Path,
+				"err":  err,
+			}).Warn("invalid or expired token")
 			writeError(w, "Invalid or expired token", http.StatusUnauthorized)
 			return
 		}
@@ -96,15 +112,27 @@ func (m *AuthMiddleware) AuthenticateOptional(next http.HandlerFunc) http.Handle
 	}
 }
 
-func RequireRole(next http.HandlerFunc, role string) http.HandlerFunc {
+func (m *AuthMiddleware) RequireRole(next http.HandlerFunc, role string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		claims, ok := r.Context().Value(UserContextKey).(*UserClaims)
 		if !ok {
+			m.Logger.WithFields(logrus.Fields{
+				"ip":   r.RemoteAddr,
+				"path": r.URL.Path,
+			}).Warn("auth required for role check")
 			writeError(w, "Authentication required", http.StatusUnauthorized)
 			return
 		}
 
 		if claims.Role != role {
+			m.Logger.WithFields(logrus.Fields{
+				"ip":       r.RemoteAddr,
+				"path":     r.URL.Path,
+				"username": claims.Username,
+				"user_id":  claims.UserID,
+				"have":     claims.Role,
+				"need":     role,
+			}).Warn("insufficient role")
 			writeError(w, "Forbidden: insufficient permissions", http.StatusForbidden)
 			return
 		}

@@ -37,7 +37,7 @@ services:
       - DB_NAME=rustwiki
       - DB_SSL_MODE=disable
       - JWT_SECRET=rustwiki-secret-change-in-production
-      - PUBLIC_URL=https://rare-dingos-fly.loca.lt
+      - PUBLIC_URL=https://hungry-rabbits-show.loca.lt
       
   frontend:
     build: ./frontend

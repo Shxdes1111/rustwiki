@@ -255,5 +255,16 @@ export const useWeaponStore = defineStore('weapons', () => {
     return await res.json()
   }
 
-  return { weapons, searchTerm, ammoList, modList, ingredientList, filteredWeapons, fetchWeapons, fetchAllAmmo, fetchAllMods, fetchAllIngredients, fetchWeapon, fetchAmmo, fetchMod, createWeapon, uploadIcon, deleteWeapon, suggestionCache, createSuggestion, fetchSuggestions, fetchSuggestion, approveSuggestion, rejectSuggestion }
+  async function deleteSuggestion(id: number) {
+    const res = await fetch(`${API_BASE}/api/suggestions/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || `HTTP ${res.status}`)
+    }
+  }
+
+  return { weapons, searchTerm, ammoList, modList, ingredientList, filteredWeapons, fetchWeapons, fetchAllAmmo, fetchAllMods, fetchAllIngredients, fetchWeapon, fetchAmmo, fetchMod, createWeapon, uploadIcon, deleteWeapon, suggestionCache, createSuggestion, fetchSuggestions, fetchSuggestion, approveSuggestion, rejectSuggestion, deleteSuggestion }
 })

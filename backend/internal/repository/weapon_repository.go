@@ -29,7 +29,7 @@ func NewWeaponRepository(db *sql.DB, log *logger.Logger, publicURL string) Weapo
 }
 
 func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
-	r.log.Info("GetAllWeapons: делаю запрос в таблицу weapon_item")
+	r.log.Debug("GetAllWeapons: делаю запрос в таблицу weapon_item")
 	rows, err := r.db.Query("SELECT id, name, type, description, shortname, icon, COALESCE(capacity, 0), COALESCE(time_to_craft, 0) FROM weapon_item ORDER BY id ASC")
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (r *weaponRepository) GetAllWeapons() ([]models.WeaponItem, error) {
 }
 
 func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
-	r.log.Info("GetWeaponByID: делаю запрос в таблицу weapon_item")
+	r.log.Debug("GetWeaponByID: делаю запрос в таблицу weapon_item")
 	row := r.db.QueryRow(
 		"SELECT id, name, type, firemode, craftable, stacksize, description, shortname, icon, COALESCE(capacity, 0), COALESCE(time_to_craft, 0), category_id FROM weapon_item WHERE id = $1",
 		id,
@@ -65,7 +65,7 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 	}
 
 	// ammo
-	r.log.Info("GetWeaponByID: делаю запрос в таблицы ammo и weapon_ammo")
+	r.log.Debug("GetWeaponByID: делаю запрос в таблицы ammo и weapon_ammo")
 	ammoRows, err := r.db.Query(`
         SELECT a.id, a.name, a.icon 
         FROM ammo a
@@ -87,7 +87,7 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
     }
 
 	// mods
-	r.log.Info("GetWeaponByID: делаю запрос в таблицы mods и weapon_mods")
+	r.log.Debug("GetWeaponByID: делаю запрос в таблицы mods и weapon_mods")
 	modRows, err := r.db.Query(`
 		SELECT m.id, m.name, m.icon, wm.weapon_item_id 
 		FROM mods m
@@ -110,7 +110,7 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 	}
 
 	// ingredients
-	r.log.Info("GetWeaponByID: делаю запрос в таблицы ingredients и weapon_ingredients")
+	r.log.Debug("GetWeaponByID: делаю запрос в таблицы ingredients и weapon_ingredients")
 	ingRows, err := r.db.Query(`
 		SELECT i.id, i.name, wi.amount, i.icon 
 		FROM ingredients i
@@ -140,7 +140,7 @@ func (r *weaponRepository) CreateWeapon(req models.CreateWeaponRequest) (int, er
 	if len(req.Description) > 500 {
 		return 0, fmt.Errorf("description too long (max 500 chars)")
 	}
-	r.log.Info("CreateWeapon: начинаю транзакцию создания оружия")
+	r.log.Debug("CreateWeapon: начинаю транзакцию создания оружия")
 
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -182,12 +182,12 @@ func (r *weaponRepository) CreateWeapon(req models.CreateWeaponRequest) (int, er
 		return 0, err
 	}
 
-	r.log.Infof("CreateWeapon: оружие создано с id=%d", newID)
+	r.log.Debugf("CreateWeapon: оружие создано с id=%d", newID)
 	return newID, nil
 }
 
 func (r *weaponRepository) DeleteWeapon(id int) error {
-	r.log.Infof("DeleteWeapon: удаляю оружие id=%d", id)
+	r.log.Debugf("DeleteWeapon: удаляю оружие id=%d", id)
 
 	var icon *string
 	err := r.db.QueryRow("SELECT icon FROM weapon_item WHERE id = $1", id).Scan(&icon)
@@ -206,7 +206,7 @@ func (r *weaponRepository) DeleteWeapon(id int) error {
 			if err := os.Remove(absPath); err != nil && !os.IsNotExist(err) {
 				r.log.Warnf("DeleteWeapon: не удалось удалить файл %s: %v", absPath, err)
 			} else {
-				r.log.Infof("DeleteWeapon: удалён файл %s", absPath)
+				r.log.Debugf("DeleteWeapon: удалён файл %s", absPath)
 			}
 		}
 	}

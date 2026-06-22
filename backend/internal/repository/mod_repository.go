@@ -23,7 +23,7 @@ func NewModRepository(db *sql.DB, log *logger.Logger) ModRepository {
 
 func (r *modRepository) GetModByID(id int) (*models.Mods, error) {
 	// 1. Получаем сам модуль
-	r.log.Info("GetModByID: делаю запрос в таблицу mods")
+	r.log.Debug("GetModByID: делаю запрос в таблицу mods")
 	row := r.db.QueryRow(
 		"SELECT id, name, icon FROM mods WHERE id = $1",
 		id,
@@ -40,7 +40,7 @@ func (r *modRepository) GetModByID(id int) (*models.Mods, error) {
 
 	// 2. Находим всё оружие, к которому подходит этот модуль (Many-to-Many)
 	// Используем честный JOIN через таблицу weapon_mods
-	r.log.Info("GetModByID: делаю запрос в таблицы weapon_item и weapon_mods")
+	r.log.Debug("GetModByID: делаю запрос в таблицы weapon_item и weapon_mods")
 	weaponRows, err := r.db.Query(`
 		SELECT w.id, w.name, w.type, w.description, w.shortname, w.icon, COALESCE(w.capacity, 0), COALESCE(w.time_to_craft, 0)
 		FROM weapon_item w
@@ -77,7 +77,7 @@ func (r *modRepository) GetModByID(id int) (*models.Mods, error) {
 }
 
 func (r *modRepository) GetAllMods() ([]models.Mods, error) {
-	r.log.Info("GetAllMods: делаю запрос в таблицу mods")
+	r.log.Debug("GetAllMods: делаю запрос в таблицу mods")
 	rows, err := r.db.Query("SELECT id, name, icon FROM mods ORDER BY id")
 	if err != nil {
 		return nil, err

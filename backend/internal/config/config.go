@@ -58,7 +58,7 @@ func Load() *Config {
 			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
 		},
 		Logger: LoggerConfig{
-			Level:  getEnv("LOG_LEVEL", "info"),
+			Level:  getEnv("LOG_LEVEL", "info"),//здесь можно на debug менять
 			Format: getEnv("LOG_FORMAT", "json"),
 			File:   getEnv("LOG_FILE", ""),
 		},

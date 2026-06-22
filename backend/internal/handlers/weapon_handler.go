@@ -71,6 +71,8 @@ func (h *WeaponHandler) CreateWeapon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.Logger.WithField("weapon_id", id).Info("weapon created")
+
 	json.NewEncoder(w).Encode(map[string]int{"id": id})
 }
 
@@ -86,6 +88,8 @@ func (h *WeaponHandler) DeleteWeapon(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
+
+	h.Logger.WithField("weapon_id", id).Info("weapon deleted")
 
 	w.WriteHeader(http.StatusNoContent)
 }

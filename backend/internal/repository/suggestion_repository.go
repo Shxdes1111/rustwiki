@@ -15,6 +15,7 @@ type SuggestionRepository interface {
 	FindByID(id int) (*models.WeaponSuggestion, error)
 	UpdateStatus(id, reviewedBy int, status string) error
 	RemoveIconBase64(id int) error
+	Delete(id int) error
 }
 
 type suggestionRepository struct {
@@ -84,6 +85,14 @@ func (r *suggestionRepository) UpdateStatus(id, reviewedBy int, status string) e
 	_, err := r.db.Exec(
 		`UPDATE weapon_suggestions SET status = $1, reviewed_at = $2, reviewed_by = $3 WHERE id = $4`,
 		status, now, reviewedBy, id,
+	)
+	return err
+}
+
+func (r *suggestionRepository) Delete(id int) error {
+	_, err := r.db.Exec(
+		`DELETE FROM weapon_suggestions WHERE id = $1 AND status != 'pending'`,
+		id,
 	)
 	return err
 }

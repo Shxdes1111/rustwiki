@@ -15,6 +15,7 @@ import (
 	"backend/internal/middleware"
 	"backend/internal/models"
 	"backend/internal/repository"
+	"github.com/sirupsen/logrus"
 )
 
 var mimeToExt = map[string]string{
@@ -220,6 +221,12 @@ func (h *SuggestionHandler) Approve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.logger.WithFields(logrus.Fields{
+		"admin_id":  claims.UserID,
+		"suggestion_id": id,
+		"weapon_id": weaponID,
+	}).Info("suggestion approved")
+
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message":   "Suggestion approved",
 		"weapon_id": weaponID,
@@ -262,5 +269,30 @@ func (h *SuggestionHandler) Reject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.logger.WithFields(logrus.Fields{
+		"admin_id":  claims.UserID,
+		"suggestion_id": id,
+	}).Info("suggestion rejected")
+
 	json.NewEncoder(w).Encode(map[string]string{"message": "Suggestion rejected"})
+}
+
+func (h *SuggestionHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, `{"error":"Invalid suggestion ID"}`, http.StatusBadRequest)
+		return
+	}
+
+	if err := h.suggestionRepo.Delete(id); err != nil {
+		h.logger.Errorf("DeleteSuggestion: %v", err)
+		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		return
+	}
+
+	h.logger.WithField("suggestion_id", id).Info("suggestion deleted")
+
+	json.NewEncoder(w).Encode(map[string]string{"message": "Suggestion deleted"})
 }

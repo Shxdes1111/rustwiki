@@ -70,7 +70,7 @@ func (r *ammoRepository) GetAmmoByID (id int) (*models.Ammo, error) {
 }
 
 func (r *ammoRepository) GetAllAmmo() ([]models.Ammo, error) {
-	r.log.Info("GetAllAmmo: делаю запрос в таблицу ammo")
+	r.log.Debug("GetAllAmmo: делаю запрос в таблицу ammo")
 	rows, err := r.db.Query("SELECT id, name, icon FROM ammo ORDER BY id")
 	if err != nil {
 		return nil, err

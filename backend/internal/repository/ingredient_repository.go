@@ -21,7 +21,7 @@ func NewIngredientRepository(db *sql.DB, log *logger.Logger) IngredientRepositor
 }
 
 func (r *ingredientRepository) GetAllIngredients() ([]models.Ingredients, error) {
-	r.log.Info("GetAllIngredients: делаю запрос в таблицу ingredients")
+	r.log.Debug("GetAllIngredients: делаю запрос в таблицу ingredients")
 	rows, err := r.db.Query("SELECT id, name, icon FROM ingredients ORDER BY id")
 	if err != nil {
 		return nil, err

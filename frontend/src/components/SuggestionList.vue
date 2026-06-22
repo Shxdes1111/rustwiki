@@ -2,10 +2,12 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useWeaponStore } from '../stores/weapons'
+import { useAuthStore } from '../stores/auth'
 import { useToast } from 'vue-toastification'
 
 const router = useRouter()
 const store = useWeaponStore()
+const authStore = useAuthStore()
 const toast = useToast()
 
 const suggestions = ref<any[]>([])
@@ -58,6 +60,17 @@ const handleReject = async (id: number) => {
     toast.error(`Failed to reject: ${err instanceof Error ? err.message : 'Unknown error'}`)
   }
 }
+
+const handleDelete = async (id: number) => {
+  if (!confirm('Delete this suggestion?')) return
+  try {
+    await store.deleteSuggestion(id)
+    toast.success('Suggestion deleted')
+    suggestions.value = await store.fetchSuggestions()
+  } catch (err) {
+    toast.error(`Failed to delete: ${err instanceof Error ? err.message : 'Unknown error'}`)
+  }
+}
 </script>
 
 <template>
@@ -72,7 +85,7 @@ const handleReject = async (id: number) => {
     <table v-show="!isMobile" v-else class="suggestion-table">
       <thead>
         <tr>
-          <th>ID</th>
+          <th>№</th>
           <th>Author</th>
           <th>Weapon</th>
           <th>Status</th>
@@ -81,8 +94,8 @@ const handleReject = async (id: number) => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="s in suggestions" :key="s.id" class="suggestion-row" @click="goToDetails(s.id)">
-          <td>{{ s.id }}</td>
+        <tr v-for="(s, index) in suggestions" :key="s.id" class="suggestion-row" @click="goToDetails(s.id)">
+          <td>{{ index + 1 }}</td>
           <td>{{ s.username || `User #${s.user_id}` }}</td>
           <td>{{ s.payload?.name || 'Unknown' }}</td>
           <td><span :class="['badge', `badge-${s.status}`]">{{ s.status }}</span></td>
@@ -90,6 +103,7 @@ const handleReject = async (id: number) => {
           <td class="actions-cell" @click.stop>
             <button v-if="s.status === 'pending'" class="btn-approve" @click="handleApprove(s.id)">Approve</button>
             <button v-if="s.status === 'pending'" class="btn-reject" @click="handleReject(s.id)">Reject</button>
+            <button v-if="authStore.isAdmin && s.status !== 'pending'" class="delete-btn" @click="handleDelete(s.id)">×</button>
           </td>
         </tr>
       </tbody>
@@ -97,10 +111,11 @@ const handleReject = async (id: number) => {
 
     <!-- Mobile: карточки -->
     <div v-show="isMobile" class="card-list">
-      <div v-for="s in suggestions" :key="s.id" class="suggestion-card" @click="goToDetails(s.id)">
+      <div v-for="(s, index) in suggestions" :key="s.id" class="suggestion-card" @click="goToDetails(s.id)">
         <div class="card-header">
-          <span class="card-id">#{{ s.id }}</span>
+          <span class="card-id">#{{ index + 1 }}</span>
           <span :class="['badge', `badge-${s.status}`]">{{ s.status }}</span>
+          <button v-if="authStore.isAdmin && s.status !== 'pending'" class="delete-btn" @click.stop="handleDelete(s.id)">×</button>
         </div>
         <div class="card-body">
           <div class="card-row"><span class="card-label">Weapon</span><span class="card-value">{{ s.payload?.name || 'Unknown' }}</span></div>
@@ -309,5 +324,21 @@ td:nth-child(3) {
   flex: 1;
   text-align: center;
   padding: 8px;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-left: 6px;
+  transition: color 0.2s;
+  line-height: 1;
+}
+
+.delete-btn:hover {
+  color: #dc2626;
 }
 </style>

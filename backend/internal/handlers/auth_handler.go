@@ -110,6 +110,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.logger.WithField("username", user.Username).Info("user logged in")
+
 	json.NewEncoder(w).Encode(models.LoginResponse{
 		Token:    token,
 		UserID:   user.ID,
