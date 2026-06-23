@@ -23,6 +23,10 @@ func main() {
 	cfg := config.Load()
 	log := logger.New(&cfg.Logger)
 
+	if cfg.JWTSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is required")
+	}
+
 	db, err := database.Connect(&cfg.Database, log)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)

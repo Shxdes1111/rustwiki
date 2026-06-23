@@ -14,7 +14,7 @@ onMounted(async () => {
   try {
     weapon.value = await store.fetchWeapon(Number(props.id))
   } catch {
-    error.value = 'Не удалось загрузить данные. Проверьте, запущен ли бэкенд.'
+    error.value = 'Failed to load weapon data. Is the backend running?'
   }
 })
 </script>
@@ -105,7 +105,7 @@ onMounted(async () => {
         <!-- Раздел: Crafting Info -->
         <div class="infobox-section-title">Crafting</div>
         <div class="infobox-row"><span>Craftable</span><span class="value">{{ weapon.craftable ? 'Yes' : 'No' }}</span></div>
-        <div class="infobox-row" v-if="weapon.timeToCraft"><span>Time To Craft</span><span class="value">{{ weapon.timeToCraft }} s</span></div>
+        <div class="infobox-row" v-if="weapon.time_to_craft"><span>Time To Craft</span><span class="value">{{ weapon.time_to_craft }} s</span></div>
 
         <!-- Раздел: Ingredients Icons -->
         <div class="infobox-section-title">Ingredients</div>

@@ -91,11 +91,10 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 		return nil, err
 	}
 
-	// increment views
-	if _, err := r.db.Exec(`UPDATE weapon_item SET views = views + 1 WHERE id = $1`, id); err != nil {
+	// increment views atomically
+	if err := r.db.QueryRow(`UPDATE weapon_item SET views = views + 1 WHERE id = $1 RETURNING views`, id).Scan(&weapon.Views); err != nil {
 		r.log.Warnf("GetWeaponByID: failed to increment views: %v", err)
 	}
-	weapon.Views++
 
 	// ammo
 	r.log.Debug("GetWeaponByID: делаю запрос в таблицы ammo и weapon_ammo")

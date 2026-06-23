@@ -52,7 +52,7 @@ export interface WeaponItem {
   firemode: string;
   capacity?: number;  
   craftable: boolean;
-  timeToCraft?: number; 
+  time_to_craft?: number; 
   views?: number;
   created_by?: number;
   author_name?: string;
@@ -85,6 +85,7 @@ export const useWeaponStore = defineStore('weapons', () => {
 
   async function fetchWeapons() {
     const res = await fetch(`${API_BASE}/api/weapons`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
     weapons.value = await res.json()
   }
 
@@ -98,16 +99,19 @@ export const useWeaponStore = defineStore('weapons', () => {
 
   async function fetchAllAmmo() {
     const res = await fetch(`${API_BASE}/api/ammo`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
     ammoList.value = await res.json()
   }
 
   async function fetchAllMods() {
     const res = await fetch(`${API_BASE}/api/mods`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
     modList.value = await res.json()
   }
 
   async function fetchAllIngredients() {
     const res = await fetch(`${API_BASE}/api/ingredients`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
     ingredientList.value = await res.json()
   }
 

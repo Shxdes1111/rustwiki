@@ -35,6 +35,8 @@ const handleDelete = async (id: number) => {
 }
 
 // Автоматически отслеживаем изменение размера таблицы
+let tableObserver: ResizeObserver | null = null
+
 onMounted(async () => {
   await nextTick()
   if (!innerTable.value) return
@@ -44,9 +46,12 @@ onMounted(async () => {
     }
   }
   updateHeight()
-  const observer = new ResizeObserver(updateHeight)
-  observer.observe(innerTable.value)
-  onUnmounted(() => observer.disconnect())
+  tableObserver = new ResizeObserver(updateHeight)
+  tableObserver.observe(innerTable.value)
+})
+
+onUnmounted(() => {
+  tableObserver?.disconnect()
 })
 </script>
 

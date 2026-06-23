@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+
 	"backend/internal/logger"
+	"backend/internal/models"
 	"backend/internal/repository"
 )
 
@@ -55,6 +57,10 @@ func (h *AmmoHandler) GetAmmoList(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Errorf("Database error while fetching ammo list: %v", err)
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
+	}
+
+	if ammoList == nil {
+		ammoList = []models.Ammo{}
 	}
 
 	json.NewEncoder(w).Encode(ammoList)

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useWeaponStore } from '../stores/weapons'
+import { useWeaponStore, type WeaponItem } from '../stores/weapons'
 import { useToast } from 'vue-toastification'
 
 const router = useRouter()
 const store = useWeaponStore()
 const toast = useToast()
 
-const weapons = ref<any[]>([])
+const weapons = ref<WeaponItem[]>([])
 const loading = ref(false)
 
 onMounted(async () => {

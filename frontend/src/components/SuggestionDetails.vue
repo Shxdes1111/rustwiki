@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useWeaponStore } from '../stores/weapons'
+import { useWeaponStore, type Suggestion } from '../stores/weapons'
 import { useToast } from 'vue-toastification'
 
 const props = defineProps<{ id: string }>()
@@ -10,7 +10,7 @@ const router = useRouter()
 const store = useWeaponStore()
 const toast = useToast()
 
-const suggestion = ref<any>(null)
+const suggestion = ref<Suggestion | null>(null)
 const loading = ref(false)
 
 onMounted(async () => {
@@ -113,21 +113,21 @@ const handleReject = async () => {
         <div v-if="ammoNames.length" class="detail-card">
           <h3>Ammunition</h3>
           <ul>
-            <li v-for="name in ammoNames" :key="name">{{ name }}</li>
+            <li v-for="(name, idx) in ammoNames" :key="`ammo-${idx}`">{{ name }}</li>
           </ul>
         </div>
 
         <div v-if="modNames.length" class="detail-card">
           <h3>Mods</h3>
           <ul>
-            <li v-for="name in modNames" :key="name">{{ name }}</li>
+            <li v-for="(name, idx) in modNames" :key="`mod-${idx}`">{{ name }}</li>
           </ul>
         </div>
 
         <div v-if="ingredientItems.length" class="detail-card">
           <h3>Ingredients</h3>
           <ul>
-            <li v-for="item in ingredientItems" :key="item.name">{{ item.name }} × {{ item.amount }}</li>
+            <li v-for="(item, idx) in ingredientItems" :key="`ing-${idx}`">{{ item.name }} × {{ item.amount }}</li>
           </ul>
         </div>
 

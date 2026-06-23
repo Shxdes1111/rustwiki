@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useWeaponStore } from '../stores/weapons'
+import { useWeaponStore, type Suggestion } from '../stores/weapons'
 import { useAuthStore } from '../stores/auth'
 import { useToast } from 'vue-toastification'
 
@@ -10,7 +10,7 @@ const store = useWeaponStore()
 const authStore = useAuthStore()
 const toast = useToast()
 
-const suggestions = ref<any[]>([])
+const suggestions = ref<Suggestion[]>([])
 const loading = ref(false)
 const isMobile = ref(window.innerWidth < 768)
 
@@ -82,53 +82,52 @@ const handleDelete = async (id: number) => {
     <div v-if="loading" class="loading">Loading...</div>
     <div v-else-if="!suggestions.length" class="empty">No suggestions yet.</div>
 
-    <!-- Desktop: таблица -->
-    <table v-show="!isMobile" v-else class="suggestion-table">
-      <thead>
-        <tr>
-          <th>№</th>
-          <th>Author</th>
-          <th>Weapon</th>
-          <th>Status</th>
-          <th>Created</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(s, index) in suggestions" :key="s.id" class="suggestion-row" @click="goToDetails(s.id)">
-          <td>{{ index + 1 }}</td>
-          <td>{{ s.username || `User #${s.user_id}` }}</td>
-          <td>{{ s.payload?.name || 'Unknown' }}</td>
-          <td><span :class="['badge', `badge-${s.status}`]">{{ s.status }}</span></td>
-          <td>{{ new Date(s.created_at).toLocaleDateString() }}</td>
-          <td class="actions-cell" @click.stop>
-            <button v-if="s.status === 'pending'" class="btn-approve" @click="handleApprove(s.id)">Approve</button>
-            <button v-if="s.status === 'pending'" class="btn-reject" @click="handleReject(s.id)">Reject</button>
-            <button v-if="authStore.isAdmin && s.status !== 'pending'" class="delete-btn" @click="handleDelete(s.id)">×</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Mobile: карточки -->
-    <div v-show="isMobile" class="card-list">
-      <div v-for="(s, index) in suggestions" :key="s.id" class="suggestion-card" @click="goToDetails(s.id)">
-        <div class="card-header">
-          <span class="card-id">#{{ index + 1 }}</span>
-          <span :class="['badge', `badge-${s.status}`]">{{ s.status }}</span>
-          <button v-if="authStore.isAdmin && s.status !== 'pending'" class="delete-btn" @click.stop="handleDelete(s.id)">×</button>
-        </div>
-        <div class="card-body">
-          <div class="card-row"><span class="card-label">Weapon</span><span class="card-value">{{ s.payload?.name || 'Unknown' }}</span></div>
-          <div class="card-row"><span class="card-label">Author</span><span class="card-value">{{ s.username || `User #${s.user_id}` }}</span></div>
-          <div class="card-row"><span class="card-label">Created</span><span class="card-value">{{ new Date(s.created_at).toLocaleDateString() }}</span></div>
-        </div>
-        <div v-if="s.status === 'pending'" class="card-actions" @click.stop>
-          <button class="btn-approve" @click="handleApprove(s.id)">Approve</button>
-          <button class="btn-reject" @click="handleReject(s.id)">Reject</button>
+    <template v-else>
+      <table v-if="!isMobile" class="suggestion-table">
+        <thead>
+          <tr>
+            <th>№</th>
+            <th>Author</th>
+            <th>Weapon</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(s, index) in suggestions" :key="s.id" class="suggestion-row" @click="goToDetails(s.id)">
+            <td>{{ index + 1 }}</td>
+            <td>{{ s.username || `User #${s.user_id}` }}</td>
+            <td>{{ s.payload?.name || 'Unknown' }}</td>
+            <td><span :class="['badge', `badge-${s.status}`]">{{ s.status }}</span></td>
+            <td>{{ new Date(s.created_at).toLocaleDateString() }}</td>
+            <td class="actions-cell" @click.stop>
+              <button v-if="s.status === 'pending'" class="btn-approve" @click="handleApprove(s.id)">Approve</button>
+              <button v-if="s.status === 'pending'" class="btn-reject" @click="handleReject(s.id)">Reject</button>
+              <button v-if="authStore.isAdmin && s.status !== 'pending'" class="delete-btn" @click="handleDelete(s.id)">×</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div v-else class="card-list">
+        <div v-for="(s, index) in suggestions" :key="s.id" class="suggestion-card" @click="goToDetails(s.id)">
+          <div class="card-header">
+            <span class="card-id">#{{ index + 1 }}</span>
+            <span :class="['badge', `badge-${s.status}`]">{{ s.status }}</span>
+            <button v-if="authStore.isAdmin && s.status !== 'pending'" class="delete-btn" @click.stop="handleDelete(s.id)">×</button>
+          </div>
+          <div class="card-body">
+            <div class="card-row"><span class="card-label">Weapon</span><span class="card-value">{{ s.payload?.name || 'Unknown' }}</span></div>
+            <div class="card-row"><span class="card-label">Author</span><span class="card-value">{{ s.username || `User #${s.user_id}` }}</span></div>
+            <div class="card-row"><span class="card-label">Created</span><span class="card-value">{{ new Date(s.created_at).toLocaleDateString() }}</span></div>
+          </div>
+          <div v-if="s.status === 'pending'" class="card-actions" @click.stop>
+            <button class="btn-approve" @click="handleApprove(s.id)">Approve</button>
+            <button class="btn-reject" @click="handleReject(s.id)">Reject</button>
+          </div>
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 

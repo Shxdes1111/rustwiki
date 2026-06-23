@@ -14,7 +14,7 @@ onMounted(async () => {
   try {
     ammo.value = await store.fetchAmmo(Number(props.id))
   } catch {
-    error.value = 'Не удалось загрузить данные. Проверьте, запущен ли бэкенд.'
+    error.value = 'Failed to load ammo data. Is the backend running?'
   }
 })
 </script>
@@ -26,7 +26,7 @@ onMounted(async () => {
     <div class="wiki-layout">
       <div class="main-content">
         <h1 class="page-title">{{ ammo.name }}</h1>
-        <p class="description-text">{{ ammo.name }} — тип патронов в Rust.</p>
+        <p class="description-text">{{ ammo.name }} is a type of ammunition in Rust.</p>
       </div>
 
       <aside class="infobox">
@@ -57,7 +57,7 @@ onMounted(async () => {
     {{ error }}
   </div>
   <div v-else class="loading">
-    Загрузка данных о патронах...
+    Loading ammo data...
   </div>
 </template>
 

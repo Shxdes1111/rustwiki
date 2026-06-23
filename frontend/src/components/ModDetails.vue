@@ -14,7 +14,7 @@ onMounted(async () => {
   try {
     mod.value = await store.fetchMod(Number(props.id))
   } catch {
-    error.value = 'Не удалось загрузить данные. Проверьте, запущен ли бэкенд.'
+    error.value = 'Failed to load mod data. Is the backend running?'
   }
 })
 </script>
@@ -26,7 +26,7 @@ onMounted(async () => {
     <div class="wiki-layout">
       <div class="main-content">
         <h1 class="page-title">{{ mod.name }}</h1>
-        <p class="description-text">{{ mod.name }} — модуль для оружия в Rust.</p>
+        <p class="description-text">{{ mod.name }} is a weapon mod in Rust.</p>
       </div>
 
       <aside class="infobox">
@@ -57,7 +57,7 @@ onMounted(async () => {
     {{ error }}
   </div>
   <div v-else class="loading">
-    Загрузка данных о модулях...
+    Loading mod data...
   </div>
 </template>
 

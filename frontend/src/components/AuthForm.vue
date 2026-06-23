@@ -18,10 +18,17 @@ async function handleSubmit() {
   error.value = ''
   loading.value = true
   try {
+    const u = username.value.trim()
+    const p = password.value
+    if (!u) {
+      error.value = 'Username is required'
+      loading.value = false
+      return
+    }
     if (tab.value === 'login') {
-      await authStore.login(username.value, password.value)
+      await authStore.login(u, p)
     } else {
-      await authStore.register(username.value, password.value)
+      await authStore.register(u, p)
     }
     emit('close')
   } catch (e: any) {

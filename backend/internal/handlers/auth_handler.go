@@ -27,46 +27,53 @@ func NewAuthHandler(userRepo repository.UserRepository, log *logger.Logger, jwtS
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	var req models.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, `{"error":"Invalid JSON"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
+	req.Username = trimSpace(req.Username)
+
 	if len(req.Username) < 3 || len(req.Password) < 6 {
-		http.Error(w, `{"error":"Username must be at least 3 chars, password at least 6 chars"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Username must be at least 3 chars, password at least 6 chars")
+		return
+	}
+	if len(req.Password) > 72 {
+		writeError(w, http.StatusBadRequest, "Password too long (max 72 chars)")
 		return
 	}
 
 	existing, err := h.userRepo.FindByUsername(req.Username)
 	if err != nil {
 		h.logger.Errorf("Register: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 	if existing != nil {
-		http.Error(w, `{"error":"Username already taken"}`, http.StatusConflict)
+		writeError(w, http.StatusConflict, "Username already taken")
 		return
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		h.logger.Errorf("Register: bcrypt error: %v", err)
-		http.Error(w, `{"error":"Server error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Server error")
 		return
 	}
 
 	user, err := h.userRepo.Create(req.Username, string(hash), "user")
 	if err != nil {
 		h.logger.Errorf("Register: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 
 	token, err := h.generateToken(user)
 	if err != nil {
 		h.logger.Errorf("Register: token error: %v", err)
-		http.Error(w, `{"error":"Server error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Server error")
 		return
 	}
 
@@ -78,35 +85,49 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func trimSpace(s string) string {
+	start, end := 0, len(s)
+	for start < end && s[start] == ' ' {
+		start++
+	}
+	for end > start && s[end-1] == ' ' {
+		end--
+	}
+	return s[start:end]
+}
+
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	var req models.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, `{"error":"Invalid JSON"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
+
+	req.Username = trimSpace(req.Username)
 
 	user, err := h.userRepo.FindByUsername(req.Username)
 	if err != nil {
 		h.logger.Errorf("Login: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 	if user == nil {
-		http.Error(w, `{"error":"Invalid username or password"}`, http.StatusUnauthorized)
+		writeError(w, http.StatusUnauthorized, "Invalid username or password")
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		http.Error(w, `{"error":"Invalid username or password"}`, http.StatusUnauthorized)
+		writeError(w, http.StatusUnauthorized, "Invalid username or password")
 		return
 	}
 
 	token, err := h.generateToken(user)
 	if err != nil {
 		h.logger.Errorf("Login: token error: %v", err)
-		http.Error(w, `{"error":"Server error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Server error")
 		return
 	}
 
@@ -125,18 +146,18 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 
 	claims := middleware.GetUserClaims(r)
 	if claims == nil {
-		http.Error(w, `{"error":"Not authenticated"}`, http.StatusUnauthorized)
+		writeError(w, http.StatusUnauthorized, "Not authenticated")
 		return
 	}
 
 	user, err := h.userRepo.FindByID(claims.UserID)
 	if err != nil {
 		h.logger.Errorf("Me: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 	if user == nil {
-		http.Error(w, `{"error":"User not found"}`, http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "User not found")
 		return
 	}
 

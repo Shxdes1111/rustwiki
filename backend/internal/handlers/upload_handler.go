@@ -18,26 +18,26 @@ func (h *WeaponHandler) UploadIcon(w http.ResponseWriter, r *http.Request) {
 
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	if err := r.ParseMultipartForm(maxUploadSize); err != nil {
-		http.Error(w, `{"error":"File too large or invalid form"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "File too large or invalid form")
 		return
 	}
 
 	file, header, err := r.FormFile("icon")
 	if err != nil {
-		http.Error(w, `{"error":"Missing icon file"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Missing icon file")
 		return
 	}
 	defer file.Close()
 
 	ext := filepath.Ext(header.Filename)
 	if ext != ".avif" && ext != ".jpeg" && ext != ".jpg" && ext != ".png" && ext != ".webp" {
-		http.Error(w, `{"error":"Unsupported format. Use avif, jpeg, png, or webp"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Unsupported format. Use avif, jpeg, png, or webp")
 		return
 	}
 
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		h.Logger.Errorf("UploadIcon: mkdir: %v", err)
-		http.Error(w, `{"error":"Server error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Server error")
 		return
 	}
 
@@ -45,14 +45,14 @@ func (h *WeaponHandler) UploadIcon(w http.ResponseWriter, r *http.Request) {
 	dst, err := os.Create(filepath.Join(uploadDir, filename))
 	if err != nil {
 		h.Logger.Errorf("UploadIcon: create file: %v", err)
-		http.Error(w, `{"error":"Server error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Server error")
 		return
 	}
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, file); err != nil {
 		h.Logger.Errorf("UploadIcon: copy: %v", err)
-		http.Error(w, `{"error":"Server error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Server error")
 		return
 	}
 

@@ -294,8 +294,14 @@ func Seed(db *sql.DB, log *logger.Logger) error {
 		}
 	}
 
-	tables := []string{"category", "ammo", "mods", "ingredients", "weapon_item", "clothing_item", "users", "weapon_suggestions"}
-	for _, table := range tables {
+	validTables := map[string]bool{
+		"category": true, "ammo": true, "mods": true, "ingredients": true,
+		"weapon_item": true, "clothing_item": true, "users": true, "weapon_suggestions": true,
+	}
+	for _, table := range []string{"category", "ammo", "mods", "ingredients", "weapon_item", "clothing_item", "users", "weapon_suggestions"} {
+		if !validTables[table] {
+			continue
+		}
 		if _, err := db.Exec(fmt.Sprintf("SELECT setval('%s_id_seq', COALESCE((SELECT MAX(id) FROM %s), 1))", table, table)); err != nil {
 			return fmt.Errorf("reset seq %s: %w", table, err)
 		}

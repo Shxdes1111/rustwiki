@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useWeaponStore } from '../stores/weapons'
+import { useWeaponStore, type Suggestion } from '../stores/weapons'
 import { useToast } from 'vue-toastification'
 
 const router = useRouter()
 const store = useWeaponStore()
 const toast = useToast()
 
-const suggestions = ref<any[]>([])
+const suggestions = ref<Suggestion[]>([])
 const loading = ref(false)
 const isMobile = ref(window.innerWidth < 768)
 
@@ -49,50 +49,51 @@ const goToEdit = (id: number) => {
     <div v-if="loading" class="loading">Loading...</div>
     <div v-else-if="!suggestions.length" class="empty">You haven't submitted any suggestions yet.</div>
 
-    <table v-show="!isMobile" v-else class="suggestion-table">
-      <thead>
-        <tr>
-          <th>№</th>
-          <th>Weapon</th>
-          <th>Status</th>
-          <th>Created</th>
-          <th>Rejection reason</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(s, index) in suggestions" :key="s.id" class="suggestion-row" @click="goToDetails(s.id)">
-          <td>{{ index + 1 }}</td>
-          <td>{{ s.payload?.name || 'Unknown' }}</td>
-          <td><span :class="['badge', `badge-${s.status}`]">{{ s.status }}</span></td>
-          <td>{{ new Date(s.created_at).toLocaleDateString() }}</td>
-          <td class="reason-cell">{{ s.status === 'rejected' ? (s.rejection_reason || '—') : '—' }}</td>
-          <td class="actions-cell" @click.stop>
-            <button v-if="s.status === 'rejected'" class="btn-edit" @click="goToEdit(s.id)">Edit</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div v-show="isMobile" class="card-list">
-      <div v-for="(s, index) in suggestions" :key="s.id" class="suggestion-card" @click="goToDetails(s.id)">
-        <div class="card-header">
-          <span class="card-id">#{{ index + 1 }}</span>
-          <span :class="['badge', `badge-${s.status}`]">{{ s.status }}</span>
-        </div>
-        <div class="card-body">
-          <div class="card-row"><span class="card-label">Weapon</span><span class="card-value">{{ s.payload?.name || 'Unknown' }}</span></div>
-          <div class="card-row"><span class="card-label">Created</span><span class="card-value">{{ new Date(s.created_at).toLocaleDateString() }}</span></div>
-          <div v-if="s.status === 'rejected'" class="card-row">
-            <span class="card-label">Reason</span>
-            <span class="card-value reason-text">{{ s.rejection_reason || '—' }}</span>
+    <template v-else>
+      <table v-if="!isMobile" class="suggestion-table">
+        <thead>
+          <tr>
+            <th>№</th>
+            <th>Weapon</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Rejection reason</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(s, index) in suggestions" :key="s.id" class="suggestion-row" @click="goToDetails(s.id)">
+            <td>{{ index + 1 }}</td>
+            <td>{{ s.payload?.name || 'Unknown' }}</td>
+            <td><span :class="['badge', `badge-${s.status}`]">{{ s.status }}</span></td>
+            <td>{{ new Date(s.created_at).toLocaleDateString() }}</td>
+            <td class="reason-cell">{{ s.status === 'rejected' ? (s.rejection_reason || '—') : '—' }}</td>
+            <td class="actions-cell" @click.stop>
+              <button v-if="s.status === 'rejected'" class="btn-edit" @click="goToEdit(s.id)">Edit</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div v-else class="card-list">
+        <div v-for="(s, index) in suggestions" :key="s.id" class="suggestion-card" @click="goToDetails(s.id)">
+          <div class="card-header">
+            <span class="card-id">#{{ index + 1 }}</span>
+            <span :class="['badge', `badge-${s.status}`]">{{ s.status }}</span>
+          </div>
+          <div class="card-body">
+            <div class="card-row"><span class="card-label">Weapon</span><span class="card-value">{{ s.payload?.name || 'Unknown' }}</span></div>
+            <div class="card-row"><span class="card-label">Created</span><span class="card-value">{{ new Date(s.created_at).toLocaleDateString() }}</span></div>
+            <div v-if="s.status === 'rejected'" class="card-row">
+              <span class="card-label">Reason</span>
+              <span class="card-value reason-text">{{ s.rejection_reason || '—' }}</span>
+            </div>
+          </div>
+          <div v-if="s.status === 'rejected'" class="card-actions" @click.stop>
+            <button class="btn-edit" @click="goToEdit(s.id)">Edit</button>
           </div>
         </div>
-        <div v-if="s.status === 'rejected'" class="card-actions" @click.stop>
-          <button class="btn-edit" @click="goToEdit(s.id)">Edit</button>
-        </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 

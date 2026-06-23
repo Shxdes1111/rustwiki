@@ -76,24 +76,25 @@ func (h *SuggestionHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	claims := middleware.GetUserClaims(r)
 	if claims == nil {
-		http.Error(w, `{"error":"Not authenticated"}`, http.StatusUnauthorized)
+		writeError(w, http.StatusUnauthorized, "Not authenticated")
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	var req models.CreateWeaponRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, `{"error":"Invalid JSON"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
 	if len(req.Description) > 500 {
-		http.Error(w, `{"error":"Description too long (max 500 chars)"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Description too long (max 500 chars)")
 		return
 	}
 
 	raw, err := json.Marshal(req)
 	if err != nil {
-		http.Error(w, `{"error":"Failed to encode payload"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Failed to encode payload")
 		return
 	}
 	payload := json.RawMessage(raw)
@@ -101,7 +102,7 @@ func (h *SuggestionHandler) Create(w http.ResponseWriter, r *http.Request) {
 	s, err := h.suggestionRepo.Create(claims.UserID, payload)
 	if err != nil {
 		h.logger.Errorf("CreateSuggestion: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 
@@ -115,7 +116,7 @@ func (h *SuggestionHandler) List(w http.ResponseWriter, r *http.Request) {
 	suggestions, err := h.suggestionRepo.FindAll()
 	if err != nil {
 		h.logger.Errorf("ListSuggestions: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 
@@ -131,18 +132,18 @@ func (h *SuggestionHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, `{"error":"Invalid suggestion ID"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid suggestion ID")
 		return
 	}
 
 	s, err := h.suggestionRepo.FindByID(id)
 	if err != nil {
 		h.logger.Errorf("GetSuggestion: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 	if s == nil {
-		http.Error(w, `{"error":"Suggestion not found"}`, http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "Suggestion not found")
 		return
 	}
 
@@ -154,28 +155,28 @@ func (h *SuggestionHandler) GetMy(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, `{"error":"Invalid suggestion ID"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid suggestion ID")
 		return
 	}
 
 	claims := middleware.GetUserClaims(r)
 	if claims == nil {
-		http.Error(w, `{"error":"Not authenticated"}`, http.StatusUnauthorized)
+		writeError(w, http.StatusUnauthorized, "Not authenticated")
 		return
 	}
 
 	s, err := h.suggestionRepo.FindByID(id)
 	if err != nil {
 		h.logger.Errorf("GetMySuggestion: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 	if s == nil {
-		http.Error(w, `{"error":"Suggestion not found"}`, http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "Suggestion not found")
 		return
 	}
 	if s.UserID != claims.UserID {
-		http.Error(w, `{"error":"Forbidden"}`, http.StatusForbidden)
+		writeError(w, http.StatusForbidden, "Forbidden")
 		return
 	}
 
@@ -187,7 +188,7 @@ func (h *SuggestionHandler) Approve(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, `{"error":"Invalid suggestion ID"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid suggestion ID")
 		return
 	}
 
@@ -196,22 +197,22 @@ func (h *SuggestionHandler) Approve(w http.ResponseWriter, r *http.Request) {
 	s, err := h.suggestionRepo.FindByID(id)
 	if err != nil {
 		h.logger.Errorf("ApproveSuggestion: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 	if s == nil {
-		http.Error(w, `{"error":"Suggestion not found"}`, http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "Suggestion not found")
 		return
 	}
 	if s.Status != "pending" {
-		http.Error(w, `{"error":"Suggestion already reviewed"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Suggestion already reviewed")
 		return
 	}
 
 	var req models.CreateWeaponRequest
 	if err := json.Unmarshal(s.Payload, &req); err != nil {
 		h.logger.Errorf("ApproveSuggestion: invalid payload: %v", err)
-		http.Error(w, `{"error":"Invalid suggestion payload"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Invalid suggestion payload")
 		return
 	}
 
@@ -219,22 +220,22 @@ func (h *SuggestionHandler) Approve(w http.ResponseWriter, r *http.Request) {
 		data, ext, err := decodeDataURL(req.IconBase64)
 		if err != nil {
 			h.logger.Errorf("ApproveSuggestion: decode icon: %v", err)
-			http.Error(w, `{"error":"Invalid icon data"}`, http.StatusBadRequest)
+			writeError(w, http.StatusBadRequest, "Invalid icon data")
 			return
 		}
-		if err := os.MkdirAll("uploads/icons/weapons", 0755); err != nil {
+		if err := os.MkdirAll(uploadDir, 0755); err != nil {
 			h.logger.Errorf("ApproveSuggestion: mkdir: %v", err)
-			http.Error(w, `{"error":"Server error"}`, http.StatusInternalServerError)
+			writeError(w, http.StatusInternalServerError, "Server error")
 			return
 		}
 		filename := fmt.Sprintf("%d_%d%s", time.Now().UnixNano(), id, ext)
-		path := filepath.Join("uploads/icons/weapons", filename)
+		path := filepath.Join(uploadDir, filename)
 		if err := os.WriteFile(path, data, 0644); err != nil {
 			h.logger.Errorf("ApproveSuggestion: write file: %v", err)
-			http.Error(w, `{"error":"Server error"}`, http.StatusInternalServerError)
+			writeError(w, http.StatusInternalServerError, "Server error")
 			return
 		}
-		req.Icon = fmt.Sprintf("/uploads/icons/weapons/%s", filename)
+		req.Icon = fmt.Sprintf("/%s/%s", uploadDir, filename)
 	}
 
 	req.CreatedBy = &s.UserID
@@ -242,7 +243,7 @@ func (h *SuggestionHandler) Approve(w http.ResponseWriter, r *http.Request) {
 	weaponID, err := h.weaponRepo.CreateWeapon(req)
 	if err != nil {
 		h.logger.Errorf("ApproveSuggestion: create weapon: %v", err)
-		http.Error(w, `{"error":"Failed to create weapon"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Failed to create weapon")
 		return
 	}
 
@@ -252,7 +253,7 @@ func (h *SuggestionHandler) Approve(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.suggestionRepo.UpdateStatus(id, claims.UserID, "approved", nil); err != nil {
 		h.logger.Errorf("ApproveSuggestion: update status: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 
@@ -273,7 +274,7 @@ func (h *SuggestionHandler) Reject(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, `{"error":"Invalid suggestion ID"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid suggestion ID")
 		return
 	}
 
@@ -282,22 +283,26 @@ func (h *SuggestionHandler) Reject(w http.ResponseWriter, r *http.Request) {
 	s, err := h.suggestionRepo.FindByID(id)
 	if err != nil {
 		h.logger.Errorf("RejectSuggestion: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 	if s == nil {
-		http.Error(w, `{"error":"Suggestion not found"}`, http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "Suggestion not found")
 		return
 	}
 	if s.Status != "pending" {
-		http.Error(w, `{"error":"Suggestion already reviewed"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Suggestion already reviewed")
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	var body struct {
 		Reason string `json:"reason"`
 	}
-	json.NewDecoder(r.Body).Decode(&body)
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "Invalid JSON")
+		return
+	}
 
 	if err := h.suggestionRepo.RemoveIconBase64(id); err != nil {
 		h.logger.Warnf("RejectSuggestion: remove base64: %v", err)
@@ -305,7 +310,7 @@ func (h *SuggestionHandler) Reject(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.suggestionRepo.UpdateStatus(id, claims.UserID, "rejected", &body.Reason); err != nil {
 		h.logger.Errorf("RejectSuggestion: update status: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 
@@ -322,14 +327,14 @@ func (h *SuggestionHandler) ListMy(w http.ResponseWriter, r *http.Request) {
 
 	claims := middleware.GetUserClaims(r)
 	if claims == nil {
-		http.Error(w, `{"error":"Not authenticated"}`, http.StatusUnauthorized)
+		writeError(w, http.StatusUnauthorized, "Not authenticated")
 		return
 	}
 
 	suggestions, err := h.suggestionRepo.FindByUserID(claims.UserID)
 	if err != nil {
 		h.logger.Errorf("ListMySuggestions: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 
@@ -345,56 +350,57 @@ func (h *SuggestionHandler) Resubmit(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, `{"error":"Invalid suggestion ID"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid suggestion ID")
 		return
 	}
 
 	claims := middleware.GetUserClaims(r)
 	if claims == nil {
-		http.Error(w, `{"error":"Not authenticated"}`, http.StatusUnauthorized)
+		writeError(w, http.StatusUnauthorized, "Not authenticated")
 		return
 	}
 
 	s, err := h.suggestionRepo.FindByID(id)
 	if err != nil {
 		h.logger.Errorf("ResubmitSuggestion: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 	if s == nil {
-		http.Error(w, `{"error":"Suggestion not found"}`, http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "Suggestion not found")
 		return
 	}
 	if s.UserID != claims.UserID {
-		http.Error(w, `{"error":"Not your suggestion"}`, http.StatusForbidden)
+		writeError(w, http.StatusForbidden, "Not your suggestion")
 		return
 	}
 	if s.Status != "rejected" {
-		http.Error(w, `{"error":"Only rejected suggestions can be resubmitted"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Only rejected suggestions can be resubmitted")
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	var req models.CreateWeaponRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, `{"error":"Invalid JSON"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
 	if len(req.Description) > 500 {
-		http.Error(w, `{"error":"Description too long (max 500 chars)"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Description too long (max 500 chars)")
 		return
 	}
 
 	raw, err := json.Marshal(req)
 	if err != nil {
-		http.Error(w, `{"error":"Failed to encode payload"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Failed to encode payload")
 		return
 	}
 	payload := json.RawMessage(raw)
 
 	if err := h.suggestionRepo.UpdatePayload(id, payload); err != nil {
 		h.logger.Errorf("ResubmitSuggestion: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 
@@ -403,7 +409,12 @@ func (h *SuggestionHandler) Resubmit(w http.ResponseWriter, r *http.Request) {
 		"suggestion_id": id,
 	}).Info("suggestion resubmitted")
 
-	updated, _ := h.suggestionRepo.FindByID(id)
+	updated, err := h.suggestionRepo.FindByID(id)
+	if err != nil {
+		h.logger.Errorf("ResubmitSuggestion: fetch updated: %v", err)
+		writeError(w, http.StatusInternalServerError, "Database error")
+		return
+	}
 	json.NewEncoder(w).Encode(updated)
 }
 
@@ -412,13 +423,13 @@ func (h *SuggestionHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, `{"error":"Invalid suggestion ID"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid suggestion ID")
 		return
 	}
 
 	if err := h.suggestionRepo.Delete(id); err != nil {
 		h.logger.Errorf("DeleteSuggestion: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 

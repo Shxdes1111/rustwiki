@@ -62,7 +62,7 @@ func Load() *Config {
 			Format: getEnv("LOG_FORMAT", "json"),
 			File:   getEnv("LOG_FILE", ""),
 		},
-		JWTSecret: getEnv("JWT_SECRET", "rustwiki-secret-key-change-in-production"),
+		JWTSecret: getEnv("JWT_SECRET", ""),
 	}
 }
 
@@ -83,11 +83,3 @@ func getEnvAsInt(key string, defaultValue int) int {
 	return defaultValue
 }
 
-// getEnvAsBool получает значение переменной окружения как bool с значением по умолчанию
-func getEnvAsBool(key string, defaultValue bool) bool {
-	valueStr := getEnv(key, "")
-	if value, err := strconv.ParseBool(valueStr); err == nil {
-		return value
-	}
-	return defaultValue
-}

@@ -33,10 +33,16 @@ function handleLogout() {
 
 onMounted(async () => {
   await authStore.init()
-  store.fetchWeapons()
-  store.fetchAllAmmo()
-  store.fetchAllMods()
-  store.fetchAllIngredients()
+  try {
+    await Promise.all([
+      store.fetchWeapons(),
+      store.fetchAllAmmo(),
+      store.fetchAllMods(),
+      store.fetchAllIngredients(),
+    ])
+  } catch (err) {
+    console.error('Failed to load initial data:', err)
+  }
   document.addEventListener('click', handleClickOutside)
 })
 

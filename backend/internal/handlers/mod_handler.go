@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+
 	"backend/internal/logger"
+	"backend/internal/models"
 	"backend/internal/repository"
 )
 
@@ -48,6 +50,10 @@ func (h *ModHandler) GetModList(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Errorf("Database error while fetching mod list: %v", err)
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
+	}
+
+	if modList == nil {
+		modList = []models.Mods{}
 	}
 
 	json.NewEncoder(w).Encode(modList)

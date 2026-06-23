@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -27,6 +29,10 @@ func (h *WeaponHandler) GetWeapons(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
+	}
+
+	if weapons == nil {
+		weapons = []models.WeaponItem{}
 	}
 
 	json.NewEncoder(w).Encode(weapons)
@@ -58,10 +64,11 @@ func (h *WeaponHandler) GetWeapon(w http.ResponseWriter, r *http.Request) {
 func (h *WeaponHandler) CreateWeapon(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 	var req models.CreateWeaponRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.Logger.Errorf("CreateWeapon: invalid JSON: %v", err)
-		http.Error(w, `{"error":"Invalid JSON"}`, http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
@@ -73,7 +80,7 @@ func (h *WeaponHandler) CreateWeapon(w http.ResponseWriter, r *http.Request) {
 	id, err := h.weaponRepo.CreateWeapon(req)
 	if err != nil {
 		h.Logger.Errorf("CreateWeapon: %v", err)
-		http.Error(w, `{"error":"Database error"}`, http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 
@@ -90,6 +97,10 @@ func (h *WeaponHandler) DeleteWeapon(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.weaponRepo.DeleteWeapon(id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			writeError(w, http.StatusNotFound, "Weapon not found")
+			return
+		}
 		h.Logger.Errorf("DeleteWeapon: %v", err)
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return

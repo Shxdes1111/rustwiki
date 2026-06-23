@@ -11,7 +11,8 @@ const store = useWeaponStore()
 const authStore = useAuthStore()
 const toast = useToast()
 
-const suggestionId = ref<number | null>(route.query.edit ? Number(route.query.edit) : null)
+const editParam = Array.isArray(route.query.edit) ? route.query.edit[0] : route.query.edit
+const suggestionId = ref<number | null>(editParam ? Number(editParam) : null)
 const isEditing = computed(() => suggestionId.value !== null)
 const loadingSuggestion = ref(false)
 
@@ -108,11 +109,17 @@ onMounted(async () => {
   }
 })
 
+const WEAPON_CATEGORY_ID = 1
+
 const handleFileSelect = (e: Event) => {
-  const input = e.target as HTMLInputElement
-  const file = input.files?.[0]
+  const target = e.target
+  if (!(target instanceof HTMLInputElement)) return
+  const file = target.files?.[0]
   if (!file) return
 
+  if (iconPreview.value) {
+    URL.revokeObjectURL(iconPreview.value)
+  }
   iconFile.value = file
   iconPreview.value = URL.createObjectURL(file)
 }
@@ -138,7 +145,7 @@ const handleSubmit = async () => {
     }
   }
 
-  const payload: any = {
+  const payload: Record<string, unknown> = {
     name: form.name,
     type: form.type,
     firemode: form.firemode,
@@ -150,7 +157,7 @@ const handleSubmit = async () => {
     icon_base64: iconBase64,
     capacity: form.capacity || null,
     time_to_craft: form.time_to_craft || null,
-    category_id: 1,
+    category_id: WEAPON_CATEGORY_ID,
     ammo_ids: selectedAmmo.value,
     mod_ids: selectedMods.value,
     ingredients: selectedIngredients.value,
@@ -317,15 +324,30 @@ const handleSubmit = async () => {
 
 <style scoped>
 .wiki-page {
+  --clr-accent: #ce422b;
+  --clr-accent-hover: #a8321f;
+  --clr-bg-card: #464646;
+  --clr-bg-input: #1a1a1a;
+  --clr-bg-grid: #2a2a2a;
+  --clr-border: #444;
+  --clr-border-card: #5d5d5d;
+  --clr-text: #e2e8f0;
+  --clr-text-secondary: #94a3b8;
+  --clr-text-muted: #64748b;
+  --clr-bg-btn: #333;
+  --clr-tooltip-bg: #222;
+  --clr-text-btn: #fff;
+  --radius: 4px;
+
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  color: #e2e8f0;
+  color: var(--clr-text);
 }
 
 .back-btn {
-  background: #333;
-  color: #fff;
+  background: var(--clr-bg-btn);
+  color: var(--clr-text-btn);
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
@@ -333,11 +355,11 @@ const handleSubmit = async () => {
   margin-bottom: 20px;
 }
 
-.back-btn:hover { background: #444; }
+.back-btn:hover { background: var(--clr-border); }
 
 .page-title {
   font-size: 2.5rem;
-  border-bottom: 1px solid #5d5d5d;
+  border-bottom: 1px solid var(--clr-border-card);
   padding-bottom: 10px;
   margin-bottom: 20px;
 }
@@ -381,7 +403,7 @@ const handleSubmit = async () => {
 .inline-checkbox {
   width: 18px;
   height: 18px;
-  accent-color: #ce422b;
+  accent-color: var(--clr-accent);
   margin-right: 8px;
   vertical-align: middle;
 }
@@ -393,23 +415,23 @@ const handleSubmit = async () => {
 .form-group label {
   display: block;
   font-size: 0.95rem;
-  color: #94a3b8;
+  color: var(--clr-text-secondary);
 }
 
 .form-input {
   width: 100%;
   padding: 10px 12px;
-  background: #1a1a1a;
-  border: 1px solid #444;
-  border-radius: 4px;
-  color: #e2e8f0;
+  background: var(--clr-bg-input);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius);
+  color: var(--clr-text);
   font-size: 1rem;
   box-sizing: border-box;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #ce422b;
+  border-color: var(--clr-accent);
 }
 
 textarea.form-input {
@@ -417,18 +439,18 @@ textarea.form-input {
 }
 
 .submit-btn {
-  background-color: #ce422b;
+  background-color: var(--clr-accent);
   color: white;
   border: none;
   padding: 10px 24px;
-  border-radius: 4px;
+  border-radius: var(--radius);
   cursor: pointer;
   font-size: 1rem;
   transition: background-color 0.2s;
 }
 
 .submit-btn:hover {
-  background-color: #a8321f;
+  background-color: var(--clr-accent-hover);
 }
 
 .checkbox-grid {
@@ -436,8 +458,8 @@ textarea.form-input {
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 4px;
   padding: 10px;
-  background-color: #2a2a2a;
-  border-radius: 4px;
+  background-color: var(--clr-bg-grid);
+  border-radius: var(--radius);
 }
 
 .checkbox-item.checkbox-item {
@@ -447,9 +469,9 @@ textarea.form-input {
   gap: 10px;
   padding: 6px 10px;
   min-height: 50px;
-  background: #464646;
-  border: 1px solid #5d5d5d;
-  border-radius: 4px;
+  background: var(--clr-bg-card);
+  border: 1px solid var(--clr-border-card);
+  border-radius: var(--radius);
   font-size: 0.85rem;
   transition: background-color 0.2s;
   overflow: hidden;
@@ -462,10 +484,10 @@ textarea.form-input {
   bottom: calc(100% + 4px);
   left: 50%;
   transform: translateX(-50%);
-  background: #222;
-  color: #e2e8f0;
+  background: var(--clr-tooltip-bg);
+  color: var(--clr-text);
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 0.8rem;
   white-space: nowrap;
   pointer-events: none;
@@ -484,7 +506,7 @@ textarea.form-input {
   width: 18px;
   height: 18px;
   margin: 0;
-  accent-color: #ce422b;
+  accent-color: var(--clr-accent);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -492,12 +514,13 @@ textarea.form-input {
 .amount-input {
   width: 70px;
   padding: 10px 8px;
-  background: #1a1a1a;
-  border: 1px solid #444;
-  border-radius: 3px;
-  color: #e2e8f0;
+  background: var(--clr-bg-input);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius);
+  color: var(--clr-text);
   font-size: 0.85rem;
   text-align: center;
+  justify-self: center;
   flex-shrink: 0;
 }
 
@@ -518,7 +541,7 @@ textarea.form-input {
 
 .amount-input:focus {
   outline: none;
-  border-color: #ce422b;
+  border-color: var(--clr-accent);
 }
 
 .grid-icon {
@@ -530,7 +553,7 @@ textarea.form-input {
 
 .empty-text {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--clr-text-muted);
   padding: 4px;
 }
 
@@ -539,14 +562,14 @@ textarea.form-input {
   align-items: center;
   gap: 16px;
   padding: 12px;
-  background-color: #2a2a2a;
-  border-radius: 4px;
+  background-color: var(--clr-bg-grid);
+  border-radius: var(--radius);
 }
 
 .file-input-label {
   display: inline-block;
   padding: 8px 16px;
-  background-color: #ce422b;
+  background-color: var(--clr-accent);
   color: white;
   border-radius: 4px;
   cursor: pointer;
@@ -556,7 +579,7 @@ textarea.form-input {
 }
 
 .file-input-label:hover {
-  background-color: #a8321f;
+  background-color: var(--clr-accent-hover);
 }
 
 .file-input {
@@ -567,19 +590,19 @@ textarea.form-input {
   width: 64px;
   height: 64px;
   object-fit: contain;
-  border-radius: 4px;
-  border: 1px solid #444;
+  border-radius: var(--radius);
+  border: 1px solid var(--clr-border);
 }
 
 .icon-placeholder {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--clr-text-muted);
 }
 
 .loading {
   text-align: center;
   padding: 40px;
-  color: #94a3b8;
+  color: var(--clr-text-secondary);
   font-size: 1.1rem;
 }
 </style>

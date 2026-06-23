@@ -36,6 +36,13 @@ func (r *ingredientRepository) GetAllIngredients() ([]models.Ingredients, error)
 		}
 		list = append(list, ing)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if list == nil {
+		list = []models.Ingredients{}
+	}
 
 	return list, nil
 }
