@@ -15,11 +15,13 @@ type Config struct {
 
 // ServerConfig представляет конфигурацию HTTP сервера
 type ServerConfig struct {
-	Port         string `json:"port"`
-	Host         string `json:"host"`
-	ReadTimeout  int    `json:"read_timeout"`
-	WriteTimeout int    `json:"write_timeout"`
-	PublicURL    string `json:"public_url"`
+	Port           string `json:"port"`
+	Host           string `json:"host"`
+	ReadTimeout    int    `json:"read_timeout"`
+	WriteTimeout   int    `json:"write_timeout"`
+	PublicURL      string `json:"public_url"`
+	AllowedOrigin  string
+	AdminPassword  string
 }
 
 // DatabaseConfig представляет конфигурацию базы данных
@@ -43,11 +45,13 @@ type LoggerConfig struct {
 func Load() *Config {
 	return &Config{
 		Server: ServerConfig{
-			Port:         getEnv("SERVER_PORT", "8080"),
-			Host:         getEnv("SERVER_HOST", "0.0.0.0"),
-			ReadTimeout:  getEnvAsInt("SERVER_READ_TIMEOUT", 10),
-			WriteTimeout: getEnvAsInt("SERVER_WRITE_TIMEOUT", 10),
-			PublicURL:    getEnv("PUBLIC_URL", "http://localhost:8080"),
+			Port:           getEnv("SERVER_PORT", "8080"),
+			Host:           getEnv("SERVER_HOST", "0.0.0.0"),
+			ReadTimeout:    getEnvAsInt("SERVER_READ_TIMEOUT", 10),
+			WriteTimeout:   getEnvAsInt("SERVER_WRITE_TIMEOUT", 10),
+			PublicURL:      getEnv("PUBLIC_URL", "http://localhost:8080"),
+			AllowedOrigin:  getEnv("CORS_ALLOWED_ORIGIN", "*"),
+			AdminPassword:  getEnv("ADMIN_PASSWORD", "926754"),
 		},
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),

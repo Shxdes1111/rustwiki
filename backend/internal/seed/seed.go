@@ -34,10 +34,10 @@ type ingredientSeed struct {
 
 func ptr(i int) *int { return &i }
 
-func Seed(db *sql.DB, log *logger.Logger) error {
+func Seed(db *sql.DB, log *logger.Logger, adminPassword string) error {
 	log.Info("Seeding database...")
 
-	admin1Hash, err := bcrypt.GenerateFromPassword([]byte("926754"), bcrypt.DefaultCost)
+	admin1Hash, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return fmt.Errorf("admin password hash: %w", err)
 	}

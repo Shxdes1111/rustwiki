@@ -41,7 +41,7 @@ func (h *WeaponHandler) UploadIcon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filename := fmt.Sprintf("%d_%s", time.Now().UnixNano(), header.Filename)
+	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
 	dst, err := os.Create(filepath.Join(uploadDir, filename))
 	if err != nil {
 		h.Logger.WithError(err).Error("UploadIcon: create file")

@@ -37,7 +37,7 @@ func main() {
 		log.WithError(err).Fatal("Failed to run migrations")
 	}
 
-	if err := seed.Seed(db.DB, log); err != nil {
+	if err := seed.Seed(db.DB, log, cfg.Server.AdminPassword); err != nil {
 		log.WithError(err).Fatal("Failed to seed database")
 	}
 
@@ -95,7 +95,7 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
-	mux := handlers.RecoveryMiddleware(log)(handlers.CORSMiddleware(handlers.LoggingMiddleware(log)(http.DefaultServeMux)))
+	mux := handlers.RecoveryMiddleware(log)(handlers.CORSMiddleware(cfg.Server.AllowedOrigin)(handlers.LoggingMiddleware(log)(http.DefaultServeMux)))
 	server := &http.Server{Addr: ":8080", Handler: mux}
 
 	go func() {

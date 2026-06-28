@@ -41,7 +41,7 @@ func (m *AuthMiddleware) Authenticate(next http.HandlerFunc) http.HandlerFunc {
 				"ip":   logger.ObfuscateIP(r.RemoteAddr),
 				"path": r.URL.Path,
 			}).Warn("missing auth header")
-			writeError(w, "Missing authorization header", http.StatusUnauthorized)
+			writeError(w, http.StatusUnauthorized, "Missing authorization header")
 			return
 		}
 
@@ -51,7 +51,7 @@ func (m *AuthMiddleware) Authenticate(next http.HandlerFunc) http.HandlerFunc {
 				"ip":   logger.ObfuscateIP(r.RemoteAddr),
 				"path": r.URL.Path,
 			}).Warn("invalid auth header format")
-			writeError(w, "Invalid authorization header format", http.StatusUnauthorized)
+			writeError(w, http.StatusUnauthorized, "Invalid authorization header format")
 			return
 		}
 
@@ -69,7 +69,7 @@ func (m *AuthMiddleware) Authenticate(next http.HandlerFunc) http.HandlerFunc {
 				"ip":   logger.ObfuscateIP(r.RemoteAddr),
 				"path": r.URL.Path,
 			}).Warn(errTokenInvalid)
-			writeError(w, "Invalid or expired token", http.StatusUnauthorized)
+			writeError(w, http.StatusUnauthorized, "Invalid or expired token")
 			return
 		}
 
@@ -120,7 +120,7 @@ func (m *AuthMiddleware) RequireRole(next http.HandlerFunc, role string) http.Ha
 				"ip":   logger.ObfuscateIP(r.RemoteAddr),
 				"path": r.URL.Path,
 			}).Warn("auth required for role check")
-			writeError(w, "Authentication required", http.StatusUnauthorized)
+			writeError(w, http.StatusUnauthorized, "Authentication required")
 			return
 		}
 
@@ -132,7 +132,7 @@ func (m *AuthMiddleware) RequireRole(next http.HandlerFunc, role string) http.Ha
 				"have":    claims.Role,
 				"need":    role,
 			}).Warn("insufficient role")
-			writeError(w, "Forbidden: insufficient permissions", http.StatusForbidden)
+			writeError(w, http.StatusForbidden, "Forbidden: insufficient permissions")
 			return
 		}
 
@@ -145,7 +145,7 @@ func GetUserClaims(r *http.Request) *UserClaims {
 	return claims
 }
 
-func writeError(w http.ResponseWriter, msg string, status int) {
+func writeError(w http.ResponseWriter, status int, msg string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(map[string]string{"error": msg})
