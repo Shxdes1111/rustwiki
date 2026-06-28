@@ -30,7 +30,7 @@ func (h *ModHandler) GetMod(w http.ResponseWriter, r *http.Request) {
 
 	mod, err := h.repo.GetModByID(id)
 	if err != nil {
-		h.Logger.Errorf("ERROR: %v", err)
+		h.Logger.WithError(err).Error("GetMod: database error")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -47,7 +47,7 @@ func (h *ModHandler) GetModList(w http.ResponseWriter, r *http.Request) {
 
 	modList, err := h.repo.GetAllMods()
 	if err != nil {
-		h.Logger.Errorf("Database error while fetching mod list: %v", err)
+		h.Logger.WithError(err).Error("GetModList: database error")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}

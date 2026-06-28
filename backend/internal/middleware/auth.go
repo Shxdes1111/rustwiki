@@ -11,6 +11,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var errTokenInvalid = "invalid or expired token"
+
 type contextKey string
 
 const UserContextKey contextKey = "user"
@@ -36,7 +38,7 @@ func (m *AuthMiddleware) Authenticate(next http.HandlerFunc) http.HandlerFunc {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			m.Logger.WithFields(logrus.Fields{
-				"ip":   r.RemoteAddr,
+				"ip":   logger.ObfuscateIP(r.RemoteAddr),
 				"path": r.URL.Path,
 			}).Warn("missing auth header")
 			writeError(w, "Missing authorization header", http.StatusUnauthorized)
@@ -46,17 +48,16 @@ func (m *AuthMiddleware) Authenticate(next http.HandlerFunc) http.HandlerFunc {
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 			m.Logger.WithFields(logrus.Fields{
-				"ip":   r.RemoteAddr,
+				"ip":   logger.ObfuscateIP(r.RemoteAddr),
 				"path": r.URL.Path,
 			}).Warn("invalid auth header format")
 			writeError(w, "Invalid authorization header format", http.StatusUnauthorized)
 			return
 		}
 
-		tokenStr := parts[1]
 		claims := &UserClaims{}
 
-		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(parts[1], claims, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, jwt.ErrSignatureInvalid
 			}
@@ -65,10 +66,9 @@ func (m *AuthMiddleware) Authenticate(next http.HandlerFunc) http.HandlerFunc {
 
 		if err != nil || !token.Valid {
 			m.Logger.WithFields(logrus.Fields{
-				"ip":   r.RemoteAddr,
+				"ip":   logger.ObfuscateIP(r.RemoteAddr),
 				"path": r.URL.Path,
-				"err":  err,
-			}).Warn("invalid or expired token")
+			}).Warn(errTokenInvalid)
 			writeError(w, "Invalid or expired token", http.StatusUnauthorized)
 			return
 		}
@@ -117,7 +117,7 @@ func (m *AuthMiddleware) RequireRole(next http.HandlerFunc, role string) http.Ha
 		claims, ok := r.Context().Value(UserContextKey).(*UserClaims)
 		if !ok || claims == nil {
 			m.Logger.WithFields(logrus.Fields{
-				"ip":   r.RemoteAddr,
+				"ip":   logger.ObfuscateIP(r.RemoteAddr),
 				"path": r.URL.Path,
 			}).Warn("auth required for role check")
 			writeError(w, "Authentication required", http.StatusUnauthorized)
@@ -126,12 +126,11 @@ func (m *AuthMiddleware) RequireRole(next http.HandlerFunc, role string) http.Ha
 
 		if claims.Role != role {
 			m.Logger.WithFields(logrus.Fields{
-				"ip":       r.RemoteAddr,
-				"path":     r.URL.Path,
-				"username": claims.Username,
-				"user_id":  claims.UserID,
-				"have":     claims.Role,
-				"need":     role,
+				"ip":      logger.ObfuscateIP(r.RemoteAddr),
+				"path":    r.URL.Path,
+				"user_id": claims.UserID,
+				"have":    claims.Role,
+				"need":    role,
 			}).Warn("insufficient role")
 			writeError(w, "Forbidden: insufficient permissions", http.StatusForbidden)
 			return

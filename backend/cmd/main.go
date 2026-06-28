@@ -29,16 +29,16 @@ func main() {
 
 	db, err := database.Connect(&cfg.Database, log)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.WithError(err).Fatal("Failed to connect to database")
 	}
 	defer db.Close()
 
 	if err := database.AutoMigrate(db.DB, log); err != nil {
-		log.Fatalf("Failed to run migrations: %v", err)
+		log.WithError(err).Fatal("Failed to run migrations")
 	}
 
 	if err := seed.Seed(db.DB, log); err != nil {
-		log.Fatalf("Failed to seed database: %v", err)
+		log.WithError(err).Fatal("Failed to seed database")
 	}
 
 	weaponRepo := repository.NewWeaponRepository(db.DB, log, cfg.Server.PublicURL)
@@ -95,13 +95,13 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
-	mux := handlers.CORSMiddleware(handlers.LoggingMiddleware(log)(http.DefaultServeMux))
+	mux := handlers.RecoveryMiddleware(log)(handlers.CORSMiddleware(handlers.LoggingMiddleware(log)(http.DefaultServeMux)))
 	server := &http.Server{Addr: ":8080", Handler: mux}
 
 	go func() {
 		log.Info("Server starting on :8080...")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Errorf("Server error: %v", err)
+			log.WithError(err).Error("Server error")
 		}
 	}()
 
@@ -112,7 +112,7 @@ func main() {
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		log.Errorf("Server shutdown failed: %v", err)
+		log.WithError(err).Error("Server shutdown failed")
 	}
 	log.Info("Server stopped.")
 }

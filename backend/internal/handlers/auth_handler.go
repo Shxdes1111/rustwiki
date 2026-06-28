@@ -47,7 +47,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	existing, err := h.userRepo.FindByUsername(req.Username)
 	if err != nil {
-		h.logger.Errorf("Register: %v", err)
+		h.logger.WithError(err).Error("Register: find by username")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -58,21 +58,21 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		h.logger.Errorf("Register: bcrypt error: %v", err)
+		h.logger.WithError(err).Error("Register: bcrypt error")
 		writeError(w, http.StatusInternalServerError, "Server error")
 		return
 	}
 
 	user, err := h.userRepo.Create(req.Username, string(hash), "user")
 	if err != nil {
-		h.logger.Errorf("Register: %v", err)
+		h.logger.WithError(err).Error("Register: create user")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
 
 	token, err := h.generateToken(user)
 	if err != nil {
-		h.logger.Errorf("Register: token error: %v", err)
+		h.logger.WithError(err).Error("Register: token generation")
 		writeError(w, http.StatusInternalServerError, "Server error")
 		return
 	}
@@ -110,7 +110,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.userRepo.FindByUsername(req.Username)
 	if err != nil {
-		h.logger.Errorf("Login: %v", err)
+		h.logger.WithError(err).Error("Login: find by username")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -126,7 +126,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	token, err := h.generateToken(user)
 	if err != nil {
-		h.logger.Errorf("Login: token error: %v", err)
+		h.logger.WithError(err).Error("Login: token generation")
 		writeError(w, http.StatusInternalServerError, "Server error")
 		return
 	}
@@ -152,7 +152,7 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.userRepo.FindByID(claims.UserID)
 	if err != nil {
-		h.logger.Errorf("Me: %v", err)
+		h.logger.WithError(err).Error("Me: find by id")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}

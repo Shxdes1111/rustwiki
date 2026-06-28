@@ -93,7 +93,7 @@ func (r *weaponRepository) GetWeaponByID(id int) (*models.WeaponItem, error) {
 
 	// increment views atomically
 	if err := r.db.QueryRow(`UPDATE weapon_item SET views = views + 1 WHERE id = $1 RETURNING views`, id).Scan(&weapon.Views); err != nil {
-		r.log.Warnf("GetWeaponByID: failed to increment views: %v", err)
+		r.log.WithError(err).Warn("GetWeaponByID: failed to increment views")
 	}
 
 	// ammo
@@ -229,7 +229,7 @@ func (r *weaponRepository) CreateWeapon(req models.CreateWeaponRequest) (int, er
 		return 0, err
 	}
 
-	r.log.Debugf("CreateWeapon: оружие создано с id=%d", newID)
+	r.log.WithField("weapon_id", newID).Debug("CreateWeapon: weapon created")
 	return newID, nil
 }
 
@@ -281,7 +281,7 @@ func (r *weaponRepository) FindByUserID(userID int) ([]models.WeaponItem, error)
 }
 
 func (r *weaponRepository) DeleteWeapon(id int) error {
-	r.log.Debugf("DeleteWeapon: удаляю оружие id=%d", id)
+	r.log.WithField("weapon_id", id).Debug("DeleteWeapon: deleting weapon")
 
 	var icon *string
 	err := r.db.QueryRow("SELECT icon FROM weapon_item WHERE id = $1", id).Scan(&icon)
@@ -298,9 +298,9 @@ func (r *weaponRepository) DeleteWeapon(id int) error {
 			relPath := strings.TrimPrefix(cleanPath, "/uploads/")
 			absPath := filepath.Join("uploads", relPath)
 			if err := os.Remove(absPath); err != nil && !os.IsNotExist(err) {
-				r.log.Warnf("DeleteWeapon: не удалось удалить файл %s: %v", absPath, err)
+				r.log.WithField("file", filepath.Base(absPath)).WithError(err).Warn("DeleteWeapon: failed to remove file")
 			} else {
-				r.log.Debugf("DeleteWeapon: удалён файл %s", absPath)
+				r.log.WithField("file", filepath.Base(absPath)).Debug("DeleteWeapon: file removed")
 			}
 		}
 	}

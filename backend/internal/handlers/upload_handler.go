@@ -36,7 +36,7 @@ func (h *WeaponHandler) UploadIcon(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
-		h.Logger.Errorf("UploadIcon: mkdir: %v", err)
+		h.Logger.WithError(err).Error("UploadIcon: mkdir")
 		writeError(w, http.StatusInternalServerError, "Server error")
 		return
 	}
@@ -44,14 +44,14 @@ func (h *WeaponHandler) UploadIcon(w http.ResponseWriter, r *http.Request) {
 	filename := fmt.Sprintf("%d_%s", time.Now().UnixNano(), header.Filename)
 	dst, err := os.Create(filepath.Join(uploadDir, filename))
 	if err != nil {
-		h.Logger.Errorf("UploadIcon: create file: %v", err)
+		h.Logger.WithError(err).Error("UploadIcon: create file")
 		writeError(w, http.StatusInternalServerError, "Server error")
 		return
 	}
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, file); err != nil {
-		h.Logger.Errorf("UploadIcon: copy: %v", err)
+		h.Logger.WithError(err).Error("UploadIcon: copy")
 		writeError(w, http.StatusInternalServerError, "Server error")
 		return
 	}

@@ -1,35 +1,32 @@
 package handlers
 
 import (
-	"fmt"
-	"net"
 	"net/http"
+	"runtime/debug"
 	"time"
 
 	"backend/internal/logger"
 	"github.com/sirupsen/logrus"
 )
 
-func obfuscateIP(addr string) string {
-	host, _, err := net.SplitHostPort(addr)
-	if err != nil {
-		return addr
+func RecoveryMiddleware(log *logger.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			defer func() {
+				if rec := recover(); rec != nil {
+					log.WithFields(logrus.Fields{
+						"ip":       logger.ObfuscateIP(r.RemoteAddr),
+						"path":     r.URL.Path,
+						"method":   r.Method,
+						"panic":    rec,
+						"stack":    string(debug.Stack()),
+					}).Error("panic recovered")
+					writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Internal server error"})
+				}
+			}()
+			next.ServeHTTP(w, r)
+		})
 	}
-	ip := net.ParseIP(host)
-	if ip == nil {
-		return host
-	}
-	if ip4 := ip.To4(); ip4 != nil {
-		return fmt.Sprintf("%d.%d.%d.xxx", ip4[0], ip4[1], ip4[2])
-	}
-	return fmt.Sprintf("%x:%x:%x:%x:xxxx:xxxx:xxxx:xxxx", ip[0], ip[1], ip[2], ip[3])
-}
-
-func obfuscateUA(ua string) string {
-	if len(ua) > 60 {
-		return ua[:60] + "..."
-	}
-	return ua
 }
 
 type responseWriter struct {
@@ -52,8 +49,8 @@ func LoggingMiddleware(log *logger.Logger) func(http.Handler) http.Handler {
 				"method":  r.Method,
 				"path":    r.URL.Path,
 				"status":  rw.status,
-				"ip":      obfuscateIP(r.RemoteAddr),
-				"agent":   obfuscateUA(r.UserAgent()),
+				"ip":      logger.ObfuscateIP(r.RemoteAddr),
+				"agent":   logger.ObfuscateUA(r.UserAgent()),
 				"latency": time.Since(start).String(),
 			}).Info("request")
 		})

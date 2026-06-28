@@ -101,7 +101,7 @@ func (h *SuggestionHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	s, err := h.suggestionRepo.Create(claims.UserID, payload)
 	if err != nil {
-		h.logger.Errorf("CreateSuggestion: %v", err)
+		h.logger.WithError(err).Error("CreateSuggestion: database error")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -115,7 +115,7 @@ func (h *SuggestionHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	suggestions, err := h.suggestionRepo.FindAll()
 	if err != nil {
-		h.logger.Errorf("ListSuggestions: %v", err)
+		h.logger.WithError(err).Error("ListSuggestions: database error")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -138,7 +138,7 @@ func (h *SuggestionHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	s, err := h.suggestionRepo.FindByID(id)
 	if err != nil {
-		h.logger.Errorf("GetSuggestion: %v", err)
+		h.logger.WithError(err).Error("GetSuggestion: database error")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -167,7 +167,7 @@ func (h *SuggestionHandler) GetMy(w http.ResponseWriter, r *http.Request) {
 
 	s, err := h.suggestionRepo.FindByID(id)
 	if err != nil {
-		h.logger.Errorf("GetMySuggestion: %v", err)
+		h.logger.WithError(err).Error("GetMySuggestion: database error")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -196,7 +196,7 @@ func (h *SuggestionHandler) Approve(w http.ResponseWriter, r *http.Request) {
 
 	s, err := h.suggestionRepo.FindByID(id)
 	if err != nil {
-		h.logger.Errorf("ApproveSuggestion: %v", err)
+		h.logger.WithError(err).Error("ApproveSuggestion: find by id")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -211,7 +211,7 @@ func (h *SuggestionHandler) Approve(w http.ResponseWriter, r *http.Request) {
 
 	var req models.CreateWeaponRequest
 	if err := json.Unmarshal(s.Payload, &req); err != nil {
-		h.logger.Errorf("ApproveSuggestion: invalid payload: %v", err)
+		h.logger.Warn("ApproveSuggestion: invalid payload")
 		writeError(w, http.StatusInternalServerError, "Invalid suggestion payload")
 		return
 	}
@@ -219,19 +219,19 @@ func (h *SuggestionHandler) Approve(w http.ResponseWriter, r *http.Request) {
 	if req.IconBase64 != "" {
 		data, ext, err := decodeDataURL(req.IconBase64)
 		if err != nil {
-			h.logger.Errorf("ApproveSuggestion: decode icon: %v", err)
+			h.logger.WithError(err).Warn("ApproveSuggestion: decode icon")
 			writeError(w, http.StatusBadRequest, "Invalid icon data")
 			return
 		}
 		if err := os.MkdirAll(uploadDir, 0755); err != nil {
-			h.logger.Errorf("ApproveSuggestion: mkdir: %v", err)
+			h.logger.WithError(err).Error("ApproveSuggestion: mkdir")
 			writeError(w, http.StatusInternalServerError, "Server error")
 			return
 		}
 		filename := fmt.Sprintf("%d_%d%s", time.Now().UnixNano(), id, ext)
 		path := filepath.Join(uploadDir, filename)
 		if err := os.WriteFile(path, data, 0644); err != nil {
-			h.logger.Errorf("ApproveSuggestion: write file: %v", err)
+			h.logger.WithError(err).Error("ApproveSuggestion: write file")
 			writeError(w, http.StatusInternalServerError, "Server error")
 			return
 		}
@@ -242,17 +242,17 @@ func (h *SuggestionHandler) Approve(w http.ResponseWriter, r *http.Request) {
 
 	weaponID, err := h.weaponRepo.CreateWeapon(req)
 	if err != nil {
-		h.logger.Errorf("ApproveSuggestion: create weapon: %v", err)
+		h.logger.WithError(err).Error("ApproveSuggestion: create weapon")
 		writeError(w, http.StatusInternalServerError, "Failed to create weapon")
 		return
 	}
 
 	if err := h.suggestionRepo.RemoveIconBase64(id); err != nil {
-		h.logger.Warnf("ApproveSuggestion: remove base64: %v", err)
+		h.logger.WithError(err).Warn("ApproveSuggestion: remove base64")
 	}
 
 	if err := h.suggestionRepo.UpdateStatus(id, claims.UserID, "approved", nil); err != nil {
-		h.logger.Errorf("ApproveSuggestion: update status: %v", err)
+		h.logger.WithError(err).Error("ApproveSuggestion: update status")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -282,7 +282,7 @@ func (h *SuggestionHandler) Reject(w http.ResponseWriter, r *http.Request) {
 
 	s, err := h.suggestionRepo.FindByID(id)
 	if err != nil {
-		h.logger.Errorf("RejectSuggestion: %v", err)
+		h.logger.WithError(err).Error("RejectSuggestion: find by id")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -305,11 +305,11 @@ func (h *SuggestionHandler) Reject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.suggestionRepo.RemoveIconBase64(id); err != nil {
-		h.logger.Warnf("RejectSuggestion: remove base64: %v", err)
+		h.logger.WithError(err).Warn("RejectSuggestion: remove base64")
 	}
 
 	if err := h.suggestionRepo.UpdateStatus(id, claims.UserID, "rejected", &body.Reason); err != nil {
-		h.logger.Errorf("RejectSuggestion: update status: %v", err)
+		h.logger.WithError(err).Error("RejectSuggestion: update status")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -333,7 +333,7 @@ func (h *SuggestionHandler) ListMy(w http.ResponseWriter, r *http.Request) {
 
 	suggestions, err := h.suggestionRepo.FindByUserID(claims.UserID)
 	if err != nil {
-		h.logger.Errorf("ListMySuggestions: %v", err)
+		h.logger.WithError(err).Error("ListMySuggestions: database error")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -362,7 +362,7 @@ func (h *SuggestionHandler) Resubmit(w http.ResponseWriter, r *http.Request) {
 
 	s, err := h.suggestionRepo.FindByID(id)
 	if err != nil {
-		h.logger.Errorf("ResubmitSuggestion: %v", err)
+		h.logger.WithError(err).Error("ResubmitSuggestion: find by id")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -399,7 +399,7 @@ func (h *SuggestionHandler) Resubmit(w http.ResponseWriter, r *http.Request) {
 	payload := json.RawMessage(raw)
 
 	if err := h.suggestionRepo.UpdatePayload(id, payload); err != nil {
-		h.logger.Errorf("ResubmitSuggestion: %v", err)
+		h.logger.WithError(err).Error("ResubmitSuggestion: update payload")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -411,7 +411,7 @@ func (h *SuggestionHandler) Resubmit(w http.ResponseWriter, r *http.Request) {
 
 	updated, err := h.suggestionRepo.FindByID(id)
 	if err != nil {
-		h.logger.Errorf("ResubmitSuggestion: fetch updated: %v", err)
+		h.logger.WithError(err).Error("ResubmitSuggestion: fetch updated")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -428,7 +428,7 @@ func (h *SuggestionHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.suggestionRepo.Delete(id); err != nil {
-		h.logger.Errorf("DeleteSuggestion: %v", err)
+		h.logger.WithError(err).Error("DeleteSuggestion: database error")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}

@@ -34,7 +34,7 @@ func (h *AmmoHandler) GetAmmo(w http.ResponseWriter, r *http.Request) {
 
 	ammo, err := h.repo.GetAmmoByID(id)
 	if err != nil {
-		h.Logger.Errorf("Database error while fetching ammo: %v", err)
+		h.Logger.WithError(err).Error("GetAmmo: database error")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}
@@ -54,7 +54,7 @@ func (h *AmmoHandler) GetAmmoList(w http.ResponseWriter, r *http.Request) {
 
 	ammoList, err := h.repo.GetAllAmmo()
 	if err != nil {
-		h.Logger.Errorf("Database error while fetching ammo list: %v", err)
+		h.Logger.WithError(err).Error("GetAmmoList: database error")
 		writeError(w, http.StatusInternalServerError, "Database error")
 		return
 	}

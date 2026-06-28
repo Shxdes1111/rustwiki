@@ -1,13 +1,37 @@
 package logger
 
 import (
+	"fmt"
 	"io"
+	"net"
 	"os"
 
 	"backend/internal/config"
 
 	"github.com/sirupsen/logrus"
 )
+
+func ObfuscateIP(addr string) string {
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return addr
+	}
+	ip := net.ParseIP(host)
+	if ip == nil {
+		return host
+	}
+	if ip4 := ip.To4(); ip4 != nil {
+		return fmt.Sprintf("%d.%d.%d.xxx", ip4[0], ip4[1], ip4[2])
+	}
+	return fmt.Sprintf("%x:%x:%x:%x:xxxx:xxxx:xxxx:xxxx", ip[0], ip[1], ip[2], ip[3])
+}
+
+func ObfuscateUA(ua string) string {
+	if len(ua) > 60 {
+		return ua[:60] + "..."
+	}
+	return ua
+}
 
 // Logger представляет логгер приложения
 type Logger struct {
@@ -39,7 +63,7 @@ func New(cfg *config.LoggerConfig) *Logger {
 
 	// Настройка вывода в файл
 	if cfg.File != "" {
-		file, err := os.OpenFile(cfg.File, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		file, err := os.OpenFile(cfg.File, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err == nil {
 			log.SetOutput(io.MultiWriter(os.Stdout, file))
 		} else {

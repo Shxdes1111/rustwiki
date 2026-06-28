@@ -50,7 +50,7 @@ services:
     environment:
       - API_PROXY=http://backend:8080
       - UPLOAD_PROXY=http://backend:8080
-      - VITE_API_BASE=https://1c48af4a9de380aa-185-228-112-94.serveousercontent.com
+      - VITE_API_BASE=https://836fe830a40d0ee4-185-228-112-94.serveousercontent.com
 
   pgadmin:
     image: dpage/pgadmin4:latest
